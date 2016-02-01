@@ -1,6 +1,6 @@
 ## Momo
 
-momo is tiny command-line file manager.
+momo is a tiny command-line file manager.
 
 ### Features
 
