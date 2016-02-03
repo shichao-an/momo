@@ -1,13 +1,14 @@
 from __future__ import absolute_import
+from momo.backends.base import Document
 import yaml
 
 
-class Bucket(object):
+class BucketDocument(Document):
     """
-    The Bucket class.
+    The BucketDocument class for the YAML backend.
 
     :param name: name of the bucket.
-    :param path: path to the bucket file.
+    :param path: path to the bucket document.
 
     """
 
@@ -19,15 +20,15 @@ class Bucket(object):
         """
         Load the bucket.
 
-        :return: the loaded document.
+        :return: the loaded content.
 
         """
         with open(self.path) as f:
             return yaml.load(f.read())
 
-    def dump(self, document):
+    def dump(self, content):
         """
-        Dump the document to the bucket file.
+        Dump the content to the bucket file.
         """
         with open(self.path, 'w') as f:
-            yaml.dump(document, f, default_flow_style=False)
+            yaml.dump(content, f, default_flow_style=False)

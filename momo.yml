@@ -1,13 +1,15 @@
-- name: 'Moe Girls'
-- contents:
-    - Mayoi Hachikuji:
-        - Nisemonogatari:
-            - image: https://moleculea.com/space/img/mayoi_hachikuji.png
-            - path: /var/tmp/mayoi_hachikuji.mkv
-    - Mikoto Misaka:
-        - A Certain Scientific Railgun:
-            - image: https://moleculea.com/space/img/mikoto_misaka.png
-            - path: /var/tmp/mikoto_misaka_1.mp4
-        - A Certain Magical Index:
-            - image: https://moleculea.com/space/img/mikoto_misaka_2.png
-            - path: /var/tmp/mikoto_misaka_2.mp4
+Mayoi Hachikuji:
+  Nisemonogatari:
+    image: https://moleculea.com/space/img/mayoi_hachikuji.png
+    path: /var/tmp/mayoi_hachikuji.mkv
+Mikoto_Misaka:
+  A Certain Scientific Railgun:
+    image: https://moleculea.com/space/img/mikoto_misaka.png
+    path: /var/tmp/mikoto_misaka_1.mp4
+  A Certain Magical Index:
+    image: https://moleculea.com/space/img/mikoto_misaka_2.png
+    path: /var/tmp/mikoto_misaka_2.mp4
+dir1:
+    file1:
+        path: foo
+    dir_attr1: foobar

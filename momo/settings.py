@@ -1,5 +1,6 @@
-import backends
-from utils import eval_path
+from momo import backends
+from momo.core import Bucket
+from momo.utils import eval_path
 import os
 import yaml
 
@@ -23,31 +24,34 @@ class Settings(object):
     :param backend: the backend type
 
     """
+
     _backend = 'yaml'
 
     def __init__(self, backend='yaml'):
 
         self._backend = backend
         self._buckets = None
-        self._document = None
+        self._settings = None
 
-    def from_file(self):
+    def load(self):
         if os.path.exists(SETTINGS_FILE):
             with open() as f:
-                self._document = yaml.load(f.read())
+                self._settings = yaml.load(f.read())
 
-    def _get_default_bucket(self):
+    def _get_default_bucket_path(self):
+        path = os.environ.get('MOMO_DEFAULT_BUCKET')
+        if path is not None:
+            return path
         filetypes = BUCKET_FILE_TYPES[self._backend]
-
         for ft in filetypes:
-            bucket = os.path.join(PROJECT_PATH, 'momo' + ft)
-            if os.path.exists(bucket):
-                return bucket
-
+            path = os.path.join(PROJECT_PATH, 'momo' + ft)
+            if os.path.exists(path):
+                return path
         for ft in filetypes:
-            bucket = os.path.join(eval_path('~'), '.momo' + ft)
-            if os.path.exists(bucket):
-                return bucket
+            path = os.path.join(eval_path('~'), '.momo' + ft)
+            if os.path.exists(path):
+                return path
+        raise SettingsError('default bucket is not found')
 
     @property
     def buckets(self):
@@ -57,40 +61,36 @@ class Settings(object):
         :return: a dictionary of buckets
 
         """
-        if self._document is not None:
-            if 'buckets' in self._document:
-                self._buckets = self._document['buckets']
+        if self._settings is not None:
+            if 'buckets' in self._settings:
+                self._buckets = {
+                    name: self._to_bucket(name, path)
+                    for name, path in self._settings['buckets'].items()
+                }
         if self._buckets is None:
-            bucket = self._get_default_bucket()
-            self.buckets['default'] = bucket
+            name = 'default'
+            path = self._get_default_bucket_path()
+            self._buckets = {
+                name: self.to_bucket(name, path)
+            }
         return self._buckets
+
+    def to_bucket(self, name, path):
+        BucketDocument = getattr(self.backend, 'BucketDocument')
+        document = BucketDocument(name, path)
+        return Bucket(document)
 
     @property
     def bucket(self):
         """
-        Get the default bucket.  The default bucket can be the value of the
-        environment variable `MOMO_BUCKET`, a path in the default location
-        that matches the backend type, the value of the `default` key (if it
-        exists) in buckets, whichever is available first.
-
-        :return: path to the default bucket
-        :rtype: str
+        Get the default bucket.
 
         """
-        bucket = None
-        if 'MOMO_BUCKET' in os.environ:
-            bucket = os.environ['MOMO_BUCKET']
-        elif 'default' in self.buckets:
-            bucket = self.buckets['default']
-        else:
-            bucket = self._get_default_bucket()
-        if bucket is None:
-            raise SettingsError('default bucket is not found')
-        return bucket
+        return self.buckets['default']
 
     @property
     def backend(self):
         return getattr(backends, self._backend)
 
 settings = Settings()
-settings.from_file()
+settings.load()
