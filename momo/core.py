@@ -86,9 +86,16 @@ class Node(Element):
         super(Node, self).__init__(name, bucket, parent, content)
         self.kind = 'Node'
         self._elems = None
+        self._i = 0
+        # self.elems is called here so that the next-level elements are
+        # loaded and their kinds are updated
+        self._len = len(self.elems)
 
     @property
     def elems(self):
+        """
+        Get elements of this node.
+        """
         if self._elems is None:
             is_dir = False
             is_file = False
@@ -109,11 +116,28 @@ class Node(Element):
                                 parent=self,
                                 content=content)
                 self._elems.append(elem)
-        if is_dir is True:
-            self.kind = 'Directory'
-        elif is_file is True:
-            self.kind = 'File'
+            if is_dir is True:
+                self.kind = 'Directory'
+            elif is_file is True:
+                self.kind = 'File'
         return self._elems
+
+    def attrs(self):
+        return filter(lambda x: isinstance(x, Attribute), self.elems)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self._i < self._len:
+            i = self._i
+            self._i += 1
+            return self._elems[i]
+        else:
+            raise StopIteration
+
+    def next(self):
+        return self.__next__()
 
     def __unicode__(self):
         return '%s [%s]' % (self.name, self.kind)

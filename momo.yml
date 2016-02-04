@@ -14,3 +14,5 @@ dir1:
         path: foo
     dir_attr1: foobar
 root_var1: val1
+file1:
+    path: /var/foo/bar
