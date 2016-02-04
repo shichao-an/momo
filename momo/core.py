@@ -54,8 +54,9 @@ class Bucket(Base):
         """
         if self._root is None:
             root = Node(name=ROOT_NODE_NAME,
-                        bucket=self.bucket,
-                        parent=None)
+                        bucket=self,
+                        parent=None,
+                        content=self.content)
             self._root = root
         return self._root
 
@@ -67,9 +68,14 @@ class Element(Base):
     """
     The Element class.
     """
-    def __init__(self, name, bucket, parent):
-        self.name = self.name
-        self.bucket = self.bucket
+    def __init__(self, name, bucket, parent, content):
+        self.name = name
+        self.bucket = bucket
+        self.parent = parent
+        self.content = content
+
+    def __unicode__(self):
+        return self.name
 
 
 class Node(Element):
@@ -77,42 +83,45 @@ class Node(Element):
     The Node class.
     """
     def __init__(self, name, bucket, parent, content):
-        super(Node, self).__init__(name, bucket, parent)
+        super(Node, self).__init__(name, bucket, parent, content)
         self.kind = 'Node'
-        self.content = content
-        self._elements = None
+        self._elems = None
 
-    def elements(self):
-        if self._elements is None:
+    @property
+    def elems(self):
+        if self._elems is None:
             is_dir = False
             is_file = False
-            self._elements = []
+            self._elems = []
             for name in self.content:
-                if isinstance(self.content['name'], str):
+                content = self.content[name]
+                if isinstance(content, str):
                     is_file = True
-                    element = Attribute(name=name,
-                                        bucket=self.bucket,
-                                        parent=self)
+                    elem = \
+                        Attribute(name=name,
+                                  bucket=self.bucket,
+                                  parent=self,
+                                  content=content)
                 else:
                     is_dir = True
-                    element = Node(name=name,
-                                   bucket=self.bucket,
-                                   parent=self,
-                                   content=self.content['name'])
-            self._elements.append(element)
+                    elem = Node(name=name,
+                                bucket=self.bucket,
+                                parent=self,
+                                content=content)
+                self._elems.append(elem)
         if is_dir is True:
             self.kind = 'Directory'
         elif is_file is True:
             self.kind = 'File'
-        return self._elements
+        return self._elems
 
     def __unicode__(self):
-        return '%s: %s' % (self.kind, self.name)
+        return '%s [%s]' % (self.name, self.kind)
 
 
 class Attribute(Element):
     """
     The Attribute class.
     """
-    def __init__(self, name, bucket, parent):
-        super(Attribute, self).__init__(name, bucket, parent)
+    def __init__(self, name, bucket, parent, content):
+        super(Attribute, self).__init__(name, bucket, parent, content)
