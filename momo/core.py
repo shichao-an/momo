@@ -88,7 +88,7 @@ class Node(Element):
         self._elems = None
         self._i = 0
         # self.elems is called here so that the next-level elements are
-        # loaded and their kinds are updated
+        # loaded and the kinds of the current elements are updated
         self._len = len(self.elems)
 
     @property
