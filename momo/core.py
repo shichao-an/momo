@@ -164,8 +164,4 @@ class File(Node):
 
 
 class Attribute(Element):
-    """
-    The Attribute class.
-    """
-    def __init__(self, name, bucket, parent, content):
-        super(Attribute, self).__init__(name, bucket, parent, content)
+    pass
