@@ -25,11 +25,15 @@ class Settings(object):
 
     """
 
-    _backend = 'yaml'
+    # default settings
+    _defaults = {
+        'backend': 'yaml',
+        'lazy_bucket': True
+    }
 
-    def __init__(self, backend='yaml'):
+    def __init__(self, backend=None):
 
-        self._backend = backend
+        self._backend = backend or self._defaults['backend']
         self._buckets = None
         self._settings = None
 
@@ -78,7 +82,7 @@ class Settings(object):
     def to_bucket(self, name, path):
         BucketDocument = getattr(self.backend, 'BucketDocument')
         document = BucketDocument(name, path)
-        return Bucket(document)
+        return Bucket(document, self)
 
     @property
     def bucket(self):
@@ -91,6 +95,17 @@ class Settings(object):
     @property
     def backend(self):
         return getattr(backends, self._backend)
+
+    def __getattr__(self, name):
+        res = None
+        if self._settings is not None:
+            res = self._settings.get(name)
+        if res is None:
+            res = self._defaults.get(name)
+        if res is None:
+            raise SettingsError('"%s" setting is not found' % name)
+        return res
+
 
 settings = Settings()
 settings.load()

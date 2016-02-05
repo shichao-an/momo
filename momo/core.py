@@ -30,8 +30,9 @@ class Bucket(Base):
     :param document: a BucketDocument object
 
     """
-    def __init__(self, document):
+    def __init__(self, document, settings):
         self.document = document
+        self.settings = settings
         self.name = self.document.name
         self._content = None
         self._root = None
@@ -53,10 +54,10 @@ class Bucket(Base):
         Get the root node.
         """
         if self._root is None:
-            root = Node(name=ROOT_NODE_NAME,
-                        bucket=self,
-                        parent=None,
-                        content=self.content)
+            root = Directory(name=ROOT_NODE_NAME,
+                             bucket=self,
+                             parent=None,
+                             content=self.content)
             self._root = root
         return self._root
 
@@ -84,12 +85,14 @@ class Node(Element):
     """
     def __init__(self, name, bucket, parent, content):
         super(Node, self).__init__(name, bucket, parent, content)
-        self.kind = 'Node'
         self._elems = None
+        self.vals = None
         self._i = 0
-        # self.elems is called here so that the next-level elements are
-        # loaded and the kinds of the current elements are updated
-        self._len = len(self.elems)
+        self._len = None
+        if not self.bucket.settings.lazy_bucket:
+            # self.elems is called here so that the next-level elements are
+            # loaded and the classes of the current elements are updated
+            self._len = len(self.elems)
 
     @property
     def elems(self):
@@ -99,10 +102,12 @@ class Node(Element):
         if self._elems is None:
             is_dir = False
             is_file = False
-            self._elems = []
+            self._elems = {}
             for name in self.content:
                 content = self.content[name]
-                if isinstance(content, str):
+                is_dict = isinstance(content, dict)
+                is_list = isinstance(content, list)
+                if not is_dict and not is_list:
                     is_file = True
                     elem = \
                         Attribute(name=name,
@@ -115,11 +120,12 @@ class Node(Element):
                                 bucket=self.bucket,
                                 parent=self,
                                 content=content)
-                self._elems.append(elem)
+                self._elems[name] = elem
             if is_dir is True:
-                self.kind = 'Directory'
+                self.__class__ = Directory
             elif is_file is True:
-                self.kind = 'File'
+                self.__class__ = File
+            self.vals = self._elems.values()
         return self._elems
 
     def attrs(self):
@@ -129,18 +135,25 @@ class Node(Element):
         return self
 
     def __next__(self):
+        if self._len is None:
+            self._len = len(self.elems)
         if self._i < self._len:
             i = self._i
             self._i += 1
-            return self._elems[i]
+            return self.vals[i]
         else:
             raise StopIteration
 
     def next(self):
         return self.__next__()
 
-    def __unicode__(self):
-        return '%s [%s]' % (self.name, self.kind)
+
+class Directory(Node):
+    pass
+
+
+class File(Node):
+    pass
 
 
 class Attribute(Element):

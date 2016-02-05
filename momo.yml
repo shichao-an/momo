@@ -16,3 +16,10 @@ dir1:
 root_var1: val1
 file1:
     path: /var/foo/bar
+dir2:
+    dir2_2:
+        dir2_2_2:
+            dir2_2_2_2:
+                file2:
+                    path: /var/f2
+bool1: true
