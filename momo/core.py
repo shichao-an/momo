@@ -86,7 +86,7 @@ class Node(Element):
     def __init__(self, name, bucket, parent, content):
         super(Node, self).__init__(name, bucket, parent, content)
         self._elems = None
-        self.vals = None
+        self._vals = None
         self._i = 0
         self._len = None
         if not self.bucket.settings.lazy_bucket:
@@ -125,9 +125,16 @@ class Node(Element):
                 self.__class__ = Directory
             elif is_file is True:
                 self.__class__ = File
-            self.vals = self._elems.values()
+            self._vals = self._elems.values()
         return self._elems
 
+    @property
+    def vals(self):
+        if self._elems is None:
+            self._vals = self.elems.values()
+        return self._vals
+
+    @property
     def attrs(self):
         return filter(lambda x: isinstance(x, Attribute), self.elems)
 
