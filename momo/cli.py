@@ -1,48 +1,39 @@
+from __future__ import print_function, absolute_import
 from momo.settings import settings
 import argparse
-import sys
-
-
-def fix_argv():
-    """Fix sys.argv due to http://bugs.python.org/issue9253"""
-    argv = set(sys.argv[1:])
-    if 'down' not in argv and 'up' not in argv:
-        sys.argv.append('__nop')
 
 
 def parse_args():
     parser = argparse.ArgumentParser(prog='momo')
-    args = parser.parse_args()
     parser.add_argument('-b', '--bucket',
                         help="name of the bucket to use")
-    # subparsers
     subparsers = parser.add_subparsers(dest='subparser_name',
                                        metavar='{ls}')
-    pnp = subparsers.add_parser('__nop')
     pls = subparsers.add_parser('ls')
-    subparser_np(pnp)
     subparser_ls(pls)
+    args = parser.parse_args()
     return args
-
-
-def subparser_np(p):
-    """
-    The parser for no-op.
-    """
-    pass
 
 
 def subparser_ls(p):
     """
     The parser for sub-command "ls".
     """
-    p.add_argument('elems', nargs='*', help='element')
+    p.add_argument('names', nargs='*',
+                   help='names or numbers to identify element')
+
+    p.add_argument('-p', '--path', action='store_true',
+                   help='show full path')
 
 
 def do_ls(args):
+    names = args.names
     bucket = settings.bucket
-    root = bucket.root
-    elems = root.elems
+    node = bucket.root
+    while names:
+        name_or_num = names.pop(0)
+        node = node.ls(name_or_num=name_or_num, show_path=args.path)
+    node.ls(show_path=args.path)
 
 
 def do_np(args):
@@ -51,6 +42,7 @@ def do_np(args):
 
 def main():
     args = parse_args()
+    print(args)
     if args.subparser_name == 'ls':
         do_ls(args)
     else:

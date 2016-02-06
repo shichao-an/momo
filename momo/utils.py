@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+from __future__ import print_function, absolute_import
 import os
 import sys
 
@@ -13,3 +15,8 @@ else:
 
 def eval_path(path):
     return os.path.abspath(os.path.expanduser(path))
+
+
+def smart_print(*args, **kwargs):
+    args = filter(lambda x: x != '', args)
+    print(*args, **kwargs)

@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 setup(
@@ -12,12 +12,12 @@ setup(
     url='https://github.com/shichao-an/momo',
     license='BSD',
     install_requires=open('requirements.txt').read().splitlines(),
-    py_modules=['momo'],
+    packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
     entry_points={
         'console_scripts': [
-            'momo = momo:main',
+            'momo = momo.cli:main',
         ],
     },
     classifiers=[

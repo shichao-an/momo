@@ -3,6 +3,7 @@ from __future__ import print_function, absolute_import
 from momo.utils import txt_type, PY3
 
 ROOT_NODE_NAME = '(root)'
+INDENT_UNIT = '  '
 
 
 class Base(object):
@@ -75,6 +76,15 @@ class Element(Base):
         self.parent = parent
         self.content = content
 
+    @property
+    def level(self):
+        parent = self.parent
+        res = 0
+        while parent is not None:
+            parent = parent.parent
+            res += 1
+        return res
+
     def __unicode__(self):
         return txt_type(self.name)
 
@@ -93,6 +103,10 @@ class Node(Element):
             # self.elems is called here so that the next-level elements are
             # loaded and the classes of the current elements are updated
             self._len = len(self.elems)
+
+    @property
+    def is_root(self):
+        return self.parent is None
 
     @property
     def elems(self):
@@ -142,9 +156,7 @@ class Node(Element):
         return self
 
     def __next__(self):
-        if self._len is None:
-            self._len = len(self.elems)
-        if self._i < self._len:
+        if self._i < self.len:
             i = self._i
             self._i += 1
             return self.vals[i]
@@ -154,33 +166,60 @@ class Node(Element):
     def next(self):
         return self.__next__()
 
-    @property
-    def level(self):
-        parent = self.parent
-        res = 0
-        while parent is not None:
-            parent = parent.parent
-            res += 1
-        return res
+    def ls(self, name_or_num=None, show_path=False):
+        """
+        List and print elements of the Node object.  If `name_or_num` is not
+        None, then return the element that matches.
 
-    def ls(self, name_or_num=None):
+        :param name_or_num: element name or number.  The name has higher
+            precedence than number.
+        :param show_path: whether to show path to the element.
         """
-        List and print elements of the Node object.
-        """
+        if show_path and not self.is_root:
+            self._print_path()
         if name_or_num is None:
-            self._ls_all()
+            self._ls_all(show_path)
         else:
-            pass
+            elem = None
+            try:
+                name_or_num = int(name_or_num)
+            except ValueError:
+                pass
+            if isinstance(name_or_num, int):
+                try:
+                    elem = self._get_elem_by_name(name_or_num)
+                except KeyError:
+                    elem = self._get_elem_by_num(name_or_num)
+            else:
+                elem = self._get_elem_by_name(name_or_num)
+            return elem
 
-    def _ls_all(self):
-        indent = '  ' * self.level
-        args = []
-        if len(indent) > 0:
-            args.append(indent)
-        for elem in self.elems:
-            args.append(elem)
-            print(*args)
-            args.pop()
+    def _ls_all(self, show_path):
+        indent = ''
+        if show_path:
+            indent = INDENT_UNIT * self.level
+        for num, elem in enumerate(self.vals, start=1):
+            print('%s%d %s' % (indent, num, elem))
+
+    @property
+    def len(self):
+        if self._len is None:
+            self._len = len(self.elems)
+        return self._len
+
+    def _get_elem_by_name(self, name):
+        return self.elems[name]
+
+    def _get_elem_by_num(self, num):
+        return self.vals[num - 1]
+
+    def _print_path(self):
+        indent = INDENT_UNIT * (self.level - 1)
+        print('%s%s' % (indent, self.name))
+
+
+class NodeError(Exception):
+    pass
 
 
 class Directory(Node):
@@ -192,4 +231,11 @@ class File(Node):
 
 
 class Attribute(Element):
-    pass
+    def ls(self, show_path=False):
+        self._ls_all(show_path)
+
+    def _ls_all(self, show_path):
+        indent = ''
+        if show_path:
+            indent = INDENT_UNIT * self.level
+        print('%s%s: %s' % (indent, self.name, self.content))
