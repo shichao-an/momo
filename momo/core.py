@@ -62,7 +62,7 @@ class Bucket(Base):
         return self._root
 
     def __unicode__(self):
-        return self.name
+        return txt_type(self.name)
 
 
 class Element(Base):
@@ -76,7 +76,7 @@ class Element(Base):
         self.content = content
 
     def __unicode__(self):
-        return self.name
+        return txt_type(self.name)
 
 
 class Node(Element):
@@ -153,6 +153,34 @@ class Node(Element):
 
     def next(self):
         return self.__next__()
+
+    @property
+    def level(self):
+        parent = self.parent
+        res = 0
+        while parent is not None:
+            parent = parent.parent
+            res += 1
+        return res
+
+    def ls(self, name_or_num=None):
+        """
+        List and print elements of the Node object.
+        """
+        if name_or_num is None:
+            self._ls_all()
+        else:
+            pass
+
+    def _ls_all(self):
+        indent = '  ' * self.level
+        args = []
+        if len(indent) > 0:
+            args.append(indent)
+        for elem in self.elems:
+            args.append(elem)
+            print(*args)
+            args.pop()
 
 
 class Directory(Node):
