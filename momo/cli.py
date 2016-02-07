@@ -26,7 +26,7 @@ def subparser_ls(p):
                    help='show full path')
     p.add_argument('-o', '--open', action='store_true',
                    help='open an element')
-    p.add_argument('-r', '--run', nargs='?', const=False,
+    p.add_argument('-r', '--run', nargs='?', const=False, metavar='COMMAND',
                    help='run a command on an element')
 
 
