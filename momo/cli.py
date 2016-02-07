@@ -1,5 +1,6 @@
 from __future__ import print_function, absolute_import
 from momo.settings import settings
+from momo.actions.default import NodeAction, AttributeAction
 import argparse
 
 
@@ -21,29 +22,38 @@ def subparser_ls(p):
     """
     p.add_argument('names', nargs='*',
                    help='names or numbers to identify element')
-
     p.add_argument('-p', '--path', action='store_true',
                    help='show full path')
+    p.add_argument('-o', '--open', action='store_true',
+                   help='open an element')
+    p.add_argument('-r', '--run', nargs='?', const=False,
+                   help='run a command on an element')
 
 
 def do_ls(args):
     names = args.names
     bucket = settings.bucket
-    node = bucket.root
+    elem = bucket.root
     while names:
         name_or_num = names.pop(0)
-        node = node.ls(name_or_num=name_or_num, show_path=args.path)
-    node.ls(show_path=args.path)
-
-
-def do_np(args):
-    pass
+        elem = elem.ls(name_or_num=name_or_num, show_path=args.path)
+    action = None
+    if elem.is_node:
+        action = NodeAction(elem)
+    elif elem.is_attr:
+        action = AttributeAction(elem)
+    if args.open:
+        action.open()
+    elif args.run is not None:
+        if args.run is False:
+            action.run()
+        else:
+            action.run(args.run)
+    else:
+        elem.ls(show_path=args.path)
 
 
 def main():
     args = parse_args()
-    print(args)
     if args.subparser_name == 'ls':
         do_ls(args)
-    else:
-        do_np(args)

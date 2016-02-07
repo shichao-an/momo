@@ -85,6 +85,22 @@ class Element(Base):
             res += 1
         return res
 
+    @property
+    def is_node(self):
+        return isinstance(self, Node)
+
+    @property
+    def is_file(self):
+        return isinstance(self, File)
+
+    @property
+    def is_dir(self):
+        return isinstance(self, Directory)
+
+    @property
+    def is_attr(self):
+        return isinstance(self, Attribute)
+
     def __unicode__(self):
         return txt_type(self.name)
 
@@ -150,7 +166,10 @@ class Node(Element):
 
     @property
     def attrs(self):
-        return filter(lambda x: isinstance(x, Attribute), self.elems)
+        res = {
+            k: v for k, v in self.elems.items() if isinstance(v, Attribute)
+        }
+        return res
 
     def __iter__(self):
         return self
@@ -187,11 +206,11 @@ class Node(Element):
                 pass
             if isinstance(name_or_num, int):
                 try:
-                    elem = self._get_elem_by_name(name_or_num)
+                    elem = self.get_elem_by_name(name_or_num)
                 except KeyError:
-                    elem = self._get_elem_by_num(name_or_num)
+                    elem = self.get_elem_by_num(name_or_num)
             else:
-                elem = self._get_elem_by_name(name_or_num)
+                elem = self.get_elem_by_name(name_or_num)
             return elem
 
     def _ls_all(self, show_path):
@@ -207,10 +226,10 @@ class Node(Element):
             self._len = len(self.elems)
         return self._len
 
-    def _get_elem_by_name(self, name):
+    def get_elem_by_name(self, name):
         return self.elems[name]
 
-    def _get_elem_by_num(self, num):
+    def get_elem_by_num(self, num):
         return self.vals[num - 1]
 
     def _print_path(self):

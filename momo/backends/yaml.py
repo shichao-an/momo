@@ -13,8 +13,7 @@ class BucketDocument(Document):
     """
 
     def __init__(self, name, path):
-        self.name = name
-        self.path = path
+        super(BucketDocument, self).__init__(name, path)
 
     def load(self):
         """
