@@ -182,8 +182,7 @@ class Node(Element):
         else:
             raise StopIteration
 
-    def next(self):
-        return self.__next__()
+    next = __next__
 
     def ls(self, name_or_num=None, show_path=False):
         """
