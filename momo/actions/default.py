@@ -36,9 +36,9 @@ class CommandParser(object):
     """
     The CommandParser class.
 
-    :param cmd_str: a command or command string
-    :param default: the attribute name to replace '{}'
-    :param subs: a dictionary of substituions
+    :param cmd_str: a command or command string.
+    :param default: the field name to replace '{}'.
+    :param subs: a dictionary of substituions.
     """
 
     def __init__(self, cmd_str, default, subs):
@@ -61,7 +61,7 @@ def open_default(path):
         os.startfile(path)
     elif os.name == 'posix':
         run = sh.Command('xdg-open')
-        run()
+        run(path)
 
 
 class NodeAction(Action):
