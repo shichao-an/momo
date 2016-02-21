@@ -28,6 +28,8 @@ def subparser_ls(p):
                    help='open an element')
     p.add_argument('-r', '--run', nargs='?', const=False, metavar='COMMAND',
                    help='run a command on an element')
+    p.add_argument('-a', '--attr',
+                   help='select an attribute')
 
 
 def do_ls(args):
@@ -48,7 +50,7 @@ def do_ls(args):
         if args.run is False:
             action.run()
         else:
-            action.run(args.run)
+            action.run(cmd=args.run)
     else:
         elem.ls(show_path=args.path)
 
