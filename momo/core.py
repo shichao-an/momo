@@ -133,17 +133,19 @@ class Node(Element):
             is_dir = False
             is_file = False
             self._elems = {}
+            if not isinstance(self.content, dict):
+                raise NodeError('invalid content format')
             for name in self.content:
                 content = self.content[name]
                 is_dict = isinstance(content, dict)
-                is_list = isinstance(content, list)
-                if not is_dict and not is_list:
+                if not is_dict:
                     is_file = True
-                    elem = \
+                    elem = (
                         Attribute(name=name,
                                   bucket=self.bucket,
                                   parent=self,
                                   content=content)
+                    )
                 else:
                     is_dir = True
                     elem = Node(name=name,
@@ -192,6 +194,8 @@ class Node(Element):
         :param name_or_num: element name or number.  The name has higher
             precedence than number.
         :param show_path: whether to show path to the element.
+
+        :return: the element that matches `name_or_num` (if it is not None)
         """
         if show_path and not self.is_root:
             self._print_path()
@@ -240,6 +244,10 @@ class NodeError(Exception):
     pass
 
 
+class AttributeError(Exception):
+    pass
+
+
 class Directory(Node):
     pass
 
@@ -249,11 +257,40 @@ class File(Node):
 
 
 class Attribute(Element):
-    def ls(self, show_path=False):
-        self._ls_all(show_path)
+    def lsattr(self, name_or_num, show_path=False):
+        """List attribute content"""
+        indent = ''
+        if show_path:
+            indent = INDENT_UNIT * (self.level + 1)
+        try:
+            name_or_num = int(name_or_num)
+        except ValueError:
+            msg = 'must use a integer to index list-type attribute'
+            raise AttributeError(msg)
+        val = self.content[name_or_num - 1]
+        print('%s%s[%d]: %s' % (indent, self.name, name_or_num, val))
+        return val
+
+    def ls(self, name_or_num=None, show_path=False):
+        """
+        List content of the attribute. If `name_or_num` is not None, return
+        the matched item of the content.
+        """
+        if name_or_num is None:
+            self._ls_all(show_path)
+        else:
+            return self.lsattr(name_or_num, show_path)
 
     def _ls_all(self, show_path):
         indent = ''
         if show_path:
             indent = INDENT_UNIT * self.level
-        print('%s%s: %s' % (indent, self.name, self.content))
+        if isinstance(self.content, list):
+            print('%s%s:' % (indent, self.name))
+            indent += INDENT_UNIT
+            for num, elem in enumerate(self.content, start=1):
+                print('%s%d %s' % (indent, num, elem))
+        elif isinstance(self.content, str):
+            print('%s%s: %s' % (indent, self.name, self.content))
+        else:
+            raise AttributeError('unknow type for attribute content')

@@ -64,6 +64,10 @@ def open_default(path):
         run(path)
 
 
+class ActionError(Exception):
+    pass
+
+
 class NodeAction(Action):
 
     def __init__(self, node):
@@ -102,6 +106,19 @@ class NodeAction(Action):
             cmd_str = parser.parse_cmd()
             run_cmd(cmd_str)
 
+    def cmd(self, num=None, attrname='path'):
+        """
+        Execute a saved command, which is stored in the `cmds` attribute.
+        """
+        if num is None:
+            num = 1
+        cmd = self.get_attr('cmds').content[int(num) - 1]
+        self.run(cmd, attrname)
+
+    def cmds(self, attrname='path'):
+        for cmd in self.get_attr('cmds').content:
+            self.run(cmd, attrname)
+
 
 class FileAction(NodeAction):
     def __init__(self, name, file):
@@ -109,8 +126,10 @@ class FileAction(NodeAction):
 
 
 class AttributeAction(Action):
-    def __init__(self, attr):
+    def __init__(self, attr, item_num=None):
         super(AttributeAction, self).__init__(attr.name, attr)
+        num = item_num or 1
+        self.item_num = int(num)
 
     def open(self):
         open_default(self.elem.content)
@@ -120,3 +139,29 @@ class AttributeAction(Action):
             run_cmd(cmd=self.elem.content)
         else:
             run_cmd(cmd=cmd, cmd_args=[self.elem.content])
+
+    def cmd(self):
+        """
+        Run the command specified by `item_num`
+        """
+        if isinstance(self.elem.content, list):
+            node = self.elem.parent
+            node_action = NodeAction(node)
+            node_action.cmd(self.item_num)
+        elif isinstance(self.elem.content, str):
+            self.run()
+        else:
+            raise ActionError('unknown attribute content type as commands')
+
+    def cmds(self):
+        """
+        Run all commands in this attribute.
+        """
+        if isinstance(self.elem.content, list):
+            node = self.elem.parent
+            node_action = NodeAction(node)
+            node_action.cmds()
+        elif isinstance(self.elem.content, str):
+            self.run()
+        else:
+            raise ActionError('unknown attribute content type as commands')
