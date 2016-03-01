@@ -57,8 +57,6 @@ def do_ls(args):
     if args.open:
         action.open()
     elif args.run is not None:
-        a = args.run
-        print(isinstance(a, six.binary_type))
         if args.run is False:
             action.run()
         else:
