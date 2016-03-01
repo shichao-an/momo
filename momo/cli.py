@@ -1,8 +1,11 @@
+# -*- coding: utf-8 -*-
 from __future__ import print_function, absolute_import
 from momo.actions.default import NodeAction, AttributeAction
 from momo.core import Element
 from momo.settings import settings
+from momo.utils import utf8_decode
 import argparse
+import six
 
 
 def parse_args():
@@ -21,7 +24,7 @@ def subparser_ls(p):
     """
     The parser for sub-command "ls".
     """
-    p.add_argument('names', nargs='*',
+    p.add_argument('names', nargs='*', type=utf8_decode,
                    help='names or numbers to identify element')
     p.add_argument('-p', '--path', action='store_true',
                    help='show full path')
@@ -31,8 +34,6 @@ def subparser_ls(p):
                    help='run a command on an element')
     p.add_argument('-c', '--cmd', nargs='?', const=False, metavar='NUM',
                    help='execute saved command(s)')
-    p.add_argument('-a', '--attr',
-                   help='select an attribute')
 
 
 def do_ls(args):
@@ -56,6 +57,8 @@ def do_ls(args):
     if args.open:
         action.open()
     elif args.run is not None:
+        a = args.run
+        print(isinstance(a, six.binary_type))
         if args.run is False:
             action.run()
         else:

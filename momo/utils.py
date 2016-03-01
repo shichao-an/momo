@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, absolute_import
 import os
+import six
 import sys
+
 
 PY3 = sys.version_info[0] == 3
 
@@ -20,3 +22,10 @@ def eval_path(path):
 def smart_print(*args, **kwargs):
     args = filter(lambda x: x != '', args)
     print(*args, **kwargs)
+
+
+def utf8_decode(s):
+    res = s
+    if isinstance(res, six.binary_type):
+        res = s.decode('utf-8')
+    return res
