@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, absolute_import
+from operator import attrgetter
 from momo.utils import txt_type, PY3
 
 ROOT_NODE_NAME = '(root)'
@@ -101,6 +102,9 @@ class Element(Base):
     def is_attr(self):
         return isinstance(self, Attribute)
 
+    def ls(self, *args, **kwargs):
+        raise NotImplementedError
+
     def __unicode__(self):
         return txt_type(self.name)
 
@@ -162,9 +166,10 @@ class Node(Element):
 
     @property
     def vals(self):
+        """Get element values (sorted)."""
         if self._elems is None:
             self._vals = self.elems.values()
-        return self._vals
+        return sorted(self._vals, key=attrgetter('name'))
 
     @property
     def attrs(self):
@@ -186,7 +191,8 @@ class Node(Element):
 
     next = __next__
 
-    def ls(self, name_or_num=None, show_path=False):
+    def ls(self, name_or_num=None, show_path=False, sort_by=None,
+           elem_type=None):
         """
         List and print elements of the Node object.  If `name_or_num` is not
         None, then return the element that matches.
@@ -194,13 +200,19 @@ class Node(Element):
         :param name_or_num: element name or number.  The name has higher
             precedence than number.
         :param show_path: whether to show path to the element.
+        :param sort_by: the name of the sorting key.  If it is None, then the
+            sorting key is the element name.  If it is a name, then the
+            content of the attribute with this name is used as the key.
+        :param elem_type: the element type.  If None, then all types are
+            included. Otherwise, it is one of "file", "directory", "node", and
+            "attribute".
 
         :return: the element that matches `name_or_num` (if it is not None)
         """
         if show_path and not self.is_root:
             self._print_path()
         if name_or_num is None:
-            self._ls_all(show_path)
+            self._ls_all(show_path, sort_by)
         else:
             elem = None
             try:
@@ -211,16 +223,17 @@ class Node(Element):
                 try:
                     elem = self.get_elem_by_name(name_or_num)
                 except KeyError:
-                    elem = self.get_elem_by_num(name_or_num)
+                    elem = self.get_elem_by_num(name_or_num, sort_by)
             else:
                 elem = self.get_elem_by_name(name_or_num)
             return elem
 
-    def _ls_all(self, show_path):
+    def _ls_all(self, show_path, sort_by=None):
         indent = ''
         if show_path:
             indent = INDENT_UNIT * self.level
-        for num, elem in enumerate(self.vals, start=1):
+        for num, elem in enumerate(self.get_sorted_vals(sort_by),
+                                   start=1):
             print('%s%d %s' % (indent, num, elem))
 
     @property
@@ -232,12 +245,26 @@ class Node(Element):
     def get_elem_by_name(self, name):
         return self.elems[name]
 
-    def get_elem_by_num(self, num):
-        return self.vals[num - 1]
+    def get_elem_by_num(self, num, sort_by):
+        return self.get_sorted_vals(sort_by)[num - 1]
 
     def _print_path(self):
         indent = INDENT_UNIT * (self.level - 1)
         print('%s%s' % (indent, self.name))
+
+    def get_sorted_vals(self, sort_by):
+        """
+        Sort element values.
+
+        :param sort_by: the name of the attribute as the sorting key.
+        """
+        def sort_key(elem):
+            if getattr(elem, 'attrs', None):
+                return elem.attrs.get(sort_by)
+
+        if sort_by is not None:
+            return sorted(self.vals, key=sort_key)
+        return self.vals
 
 
 class NodeError(Exception):

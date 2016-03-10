@@ -5,7 +5,6 @@ from momo.core import Element
 from momo.settings import settings
 from momo.utils import utf8_decode
 import argparse
-import six
 
 
 def parse_args():
@@ -45,7 +44,8 @@ def do_ls(args):
     while names:
         parent = elem
         name_or_num = names.pop(0)
-        elem = elem.ls(name_or_num=name_or_num, show_path=args.path)
+        elem = elem.ls(name_or_num=name_or_num,
+                       show_path=args.path)
     action = None
     # XXX: a list item in an attribute content
     if not isinstance(elem, Element):
