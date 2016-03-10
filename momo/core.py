@@ -234,7 +234,7 @@ class Node(Element):
             indent = INDENT_UNIT * self.level
         for num, elem in enumerate(self.get_sorted_vals(sort_by),
                                    start=1):
-            print('%s%d %s' % (indent, num, elem))
+            print('%s%3d %s' % (indent, num, elem))
 
     @property
     def len(self):
@@ -316,7 +316,7 @@ class Attribute(Element):
             print('%s%s:' % (indent, self.name))
             indent += INDENT_UNIT
             for num, elem in enumerate(self.content, start=1):
-                print('%s%d %s' % (indent, num, elem))
+                print('%s%3d %s' % (indent, num, elem))
         elif isinstance(self.content, str):
             print('%s%s: %s' % (indent, self.name, self.content))
         else:
