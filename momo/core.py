@@ -165,11 +165,18 @@ class Node(Element):
         return self._elems
 
     @property
-    def vals(self):
+    def svals(self):
         """Get element values (sorted)."""
         if self._elems is None:
             self._vals = self.elems.values()
         return sorted(self._vals, key=attrgetter('name'))
+
+    @property
+    def vals(self):
+        """Get element values."""
+        if self._elems is None:
+            self._vals = self.elems.values()
+        return self._vals
 
     @property
     def attrs(self):
@@ -264,7 +271,7 @@ class Node(Element):
 
         if sort_by is not None:
             return sorted(self.vals, key=sort_key)
-        return self.vals
+        return self.svals
 
 
 class NodeError(Exception):
