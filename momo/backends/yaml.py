@@ -30,4 +30,5 @@ class BucketDocument(Document):
         Dump the content to the bucket file.
         """
         with open(self.path, 'w') as f:
-            yaml.dump(content, f, default_flow_style=False)
+            yaml.dump(content, f, default_flow_style=False,
+                      allow_unicode=True)

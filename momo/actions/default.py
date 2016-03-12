@@ -1,35 +1,9 @@
+from momo.utils import run_cmd
 from momo.actions.base import Action
 import os
 import platform
 import re
 import sh
-import shlex
-import sys
-
-
-def run_cmd(cmd_str=None, cmd=None, cmd_args=None, stdout=sys.stdout,
-            stderr=sys.stderr, stdin=None):
-    """
-    :param cmd_str: the command string.
-    :param cmd: the command.  If `cmd` is not None, it takes precedence over
-                `cmd_str`.
-    :param cmd_args: the list of command arguments.  If `cmd_args` is not
-                     None, it takes precedence over `cmd_str`.
-    """
-    sh_kwargs = {
-            '_out': stdout,
-            '_err': stderr,
-            '_in': stdin
-    }
-    comps = []
-    if cmd_str is not None:
-        comps = shlex.split(cmd_str)
-    cmd = cmd or comps[0]
-    run = sh.Command(cmd)
-    if cmd_args is None and not comps[1:]:
-        return run(**sh_kwargs)
-    args = cmd_args or comps[1:]
-    return run(*args, **sh_kwargs)
 
 
 class CommandParser(object):

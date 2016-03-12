@@ -5,7 +5,8 @@ import os
 import yaml
 
 
-SETTINGS_FILE = eval_path('~/.momo')
+SETTINGS_DIR = eval_path('~/.momo')
+SETTINGS_FILE = os.path.join(SETTINGS_DIR, 'settings.yml')
 BUCKET_FILE_TYPES = {
     'yaml': ('.yaml', '.yml')
 }
@@ -28,7 +29,8 @@ class Settings(object):
     # default settings
     _defaults = {
         'backend': 'yaml',
-        'lazy_bucket': True
+        'lazy_bucket': True,
+        'plugins': {}
     }
 
     def __init__(self, backend=None):
@@ -36,6 +38,8 @@ class Settings(object):
         self._backend = backend or self._defaults['backend']
         self._buckets = None
         self._settings = None
+        self.settings_file = SETTINGS_FILE
+        self.settings_dir = SETTINGS_DIR
 
     def load(self):
         if os.path.exists(SETTINGS_FILE):

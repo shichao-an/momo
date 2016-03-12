@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, absolute_import
+from momo import plugins
 from momo.actions.default import NodeAction, AttributeAction
 from momo.core import Element
 from momo.settings import settings
@@ -11,10 +12,11 @@ def parse_args():
     parser = argparse.ArgumentParser(prog='momo')
     parser.add_argument('-b', '--bucket',
                         help="name of the bucket to use")
-    subparsers = parser.add_subparsers(dest='subparser_name',
-                                       metavar='{ls}')
+    subparsers = parser.add_subparsers(dest='subparser_name')
     pls = subparsers.add_parser('ls')
     subparser_ls(pls)
+    ppl = subparsers.add_parser('pl')
+    subparser_pl(ppl)
     args = parser.parse_args()
     return args
 
@@ -33,6 +35,13 @@ def subparser_ls(p):
                    help='run a command on an element')
     p.add_argument('-c', '--cmd', nargs='?', const=False, metavar='NUM',
                    help='execute saved command(s)')
+
+
+def subparser_pl(p):
+    """
+    The parser for sub-command "pl".
+    """
+    p.add_argument('plugin', help='run a plugin')
 
 
 def do_ls(args):
@@ -74,7 +83,15 @@ def do_ls(args):
             elem.ls(show_path=args.path)
 
 
+def do_pl(args):
+    plugin = getattr(plugins, args.plugin).plugin
+    plugin.setup()
+    plugin.run()
+
+
 def main():
     args = parse_args()
     if args.subparser_name == 'ls':
         do_ls(args)
+    elif args.subparser_name == 'pl':
+        do_pl(args)

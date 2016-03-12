@@ -76,6 +76,11 @@ class Element(Base):
         self.bucket = bucket
         self.parent = parent
         self.content = content
+        if parent is None:
+            self.path = []
+        else:
+            self.path = parent.path[:]
+            self.path.append(self.name)
 
     @property
     def level(self):
@@ -184,6 +189,29 @@ class Node(Element):
             k: v for k, v in self.elems.items() if isinstance(v, Attribute)
         }
         return res
+
+    @property
+    def attr_vals(self):
+        return filter(lambda x: isinstance(x, Attribute), self.vals)
+
+    @property
+    def attr_svals(self):
+        return filter(lambda x: isinstance(x, Attribute), self.svals)
+
+    @property
+    def nodes(self):
+        res = {
+            k: v for k, v in self.elems.items() if isinstance(v, Node)
+        }
+        return res
+
+    @property
+    def node_vals(self):
+        return filter(lambda x: isinstance(x, Node), self.vals)
+
+    @property
+    def node_svals(self):
+        return filter(lambda x: isinstance(x, Node), self.svals)
 
     def __iter__(self):
         return self
