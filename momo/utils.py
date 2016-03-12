@@ -2,6 +2,7 @@
 from __future__ import print_function, absolute_import
 import errno
 import os
+import platform
 import sh
 import six
 import shlex
@@ -64,6 +65,16 @@ def run_cmd(cmd_str=None, cmd=None, cmd_args=None, stdout=sys.stdout,
         return run(**sh_kwargs)
     args = cmd_args or comps[1:]
     return run(*args, **sh_kwargs)
+
+
+def open_default(path):
+    if platform.system() == 'Darwin':
+        sh.open(path)
+    elif os.name == 'nt':
+        os.startfile(path)
+    elif os.name == 'posix':
+        run = sh.Command('xdg-open')
+        run(path)
 
 
 def mkdir_p(path):

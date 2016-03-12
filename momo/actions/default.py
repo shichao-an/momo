@@ -1,9 +1,6 @@
-from momo.utils import run_cmd
+from momo.utils import run_cmd, open_default
 from momo.actions.base import Action
-import os
-import platform
 import re
-import sh
 
 
 class CommandParser(object):
@@ -26,16 +23,6 @@ class CommandParser(object):
             return t.format(**self.subs)
         else:
             return '%s %s' % (self.cmd_str, self.subs[self.default])
-
-
-def open_default(path):
-    if platform.system() == 'Darwin':
-        sh.open(path)
-    elif os.name == 'nt':
-        os.startfile(path)
-    elif os.name == 'posix':
-        run = sh.Command('xdg-open')
-        run(path)
 
 
 class ActionError(Exception):
