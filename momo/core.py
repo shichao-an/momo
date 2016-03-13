@@ -227,7 +227,7 @@ class Node(Element):
     next = __next__
 
     def ls(self, name_or_num=None, show_path=False, sort_by=None,
-           elem_type=None):
+           unordered=False, elem_type=None):
         """
         List and print elements of the Node object.  If `name_or_num` is not
         None, then return the element that matches.
@@ -238,6 +238,8 @@ class Node(Element):
         :param sort_by: the name of the sorting key.  If it is None, then the
             sorting key is the element name.  If it is a name, then the
             content of the attribute with this name is used as the key.
+        :param unordered: whether to present elements unordered.  If it is
+            True, the original order in the document is used.
         :param elem_type: the element type.  If None, then all types are
             included. Otherwise, it is one of "file", "directory", "node", and
             "attribute".
@@ -298,7 +300,7 @@ class Node(Element):
                 return elem.attrs.get(sort_by)
 
         if sort_by is not None:
-            return sorted(self.vals, key=sort_key)
+            return sorted(self.vals, key=sort_by)
         return self.svals
 
 

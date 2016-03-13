@@ -5,8 +5,12 @@ import os
 import yaml
 
 
-SETTINGS_DIR = eval_path('~/.momo')
-SETTINGS_FILE = os.path.join(SETTINGS_DIR, 'settings.yml')
+ENV_SETTINGS_DIR = 'MOMO_SETTINGS_DIR'
+ENV_SETTINGS_FILE = 'MOMO_SETTINGS_FILE'
+ENV_DEFAULT_BUCKET = 'MOMO_DEFAULT_BUCKET'
+
+DEFAULT_SETTINGS_DIR = eval_path('~/.momo')
+DEFAULT_SETTINGS_FILE = os.path.join(DEFAULT_SETTINGS_DIR, 'settings.yml')
 BUCKET_FILE_TYPES = {
     'yaml': ('.yaml', '.yml')
 }
@@ -33,24 +37,32 @@ class Settings(object):
         'plugins': {}
     }
 
-    def __init__(self, backend=None):
-
-        self._backend = backend or self._defaults['backend']
+    def __init__(self, settings_dir=None, settings_file=None):
+        self._backend = self._defaults['backend']
         self._buckets = None
         self._settings = None
-        self.settings_file = SETTINGS_FILE
-        self.settings_dir = SETTINGS_DIR
+        self.settings_dir = settings_dir or self._get_settings_dir()
+        self.settings_file = settings_file or self._get_settings_file()
+
+    def _get_settings_dir(self):
+        return os.environ.get(ENV_SETTINGS_DIR) or DEFAULT_SETTINGS_DIR
+
+    def _get_settings_file(self):
+        return os.environ.get(ENV_SETTINGS_FILE) or DEFAULT_SETTINGS_FILE
 
     def load(self):
-        if os.path.exists(SETTINGS_FILE):
-            with open() as f:
+        if os.path.exists(self.settings_file):
+            with open(self.settings_file) as f:
                 self._settings = yaml.load(f.read())
+            return True
+        return False
 
     def _get_default_bucket_path(self):
-        path = os.environ.get('MOMO_DEFAULT_BUCKET')
+        path = os.environ.get(ENV_DEFAULT_BUCKET)
         if path is not None:
             return path
         filetypes = BUCKET_FILE_TYPES[self._backend]
+        # for dev
         for ft in filetypes:
             path = os.path.join(PROJECT_PATH, 'momo' + ft)
             if os.path.exists(path):
