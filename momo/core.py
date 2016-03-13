@@ -374,7 +374,7 @@ class Attribute(Element):
         print('%s%s[%d]: %s' % (indent, self.name, name_or_num, val))
         return val
 
-    def ls(self, name_or_num=None, show_path=False):
+    def ls(self, name_or_num=None, show_path=False, **kwargs):
         """
         List content of the attribute. If `name_or_num` is not None, return
         the matched item of the content.
