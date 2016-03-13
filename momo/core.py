@@ -2,6 +2,9 @@
 from __future__ import print_function, absolute_import
 from operator import attrgetter
 from momo.utils import txt_type, PY3
+from collections import OrderedDict
+import sys
+
 
 ROOT_NODE_NAME = '(root)'
 INDENT_UNIT = '  '
@@ -141,7 +144,7 @@ class Node(Element):
         if self._elems is None:
             is_dir = False
             is_file = False
-            self._elems = {}
+            self._elems = OrderedDict()
             if not isinstance(self.content, dict):
                 raise NodeError('invalid content format')
             for name in self.content:
@@ -171,47 +174,39 @@ class Node(Element):
 
     @property
     def svals(self):
-        """Get element values (sorted)."""
-        if self._elems is None:
-            self._vals = self.elems.values()
-        return sorted(self._vals, key=attrgetter('name'))
+        """Shortcut to get sorted element values."""
+        self.get_sorted_vals()
 
     @property
     def vals(self):
-        """Get element values."""
+        """Shortcut to get unordered element values."""
         if self._elems is None:
             self._vals = self.elems.values()
         return self._vals
 
     @property
     def attrs(self):
-        res = {
-            k: v for k, v in self.elems.items() if isinstance(v, Attribute)
-        }
-        return res
+        return self.get_elems(elem_type='attribute')
 
     @property
     def attr_vals(self):
-        return filter(lambda x: isinstance(x, Attribute), self.vals)
+        return self.get_vals(unordered=True, elem_type='attribute')
 
     @property
     def attr_svals(self):
-        return filter(lambda x: isinstance(x, Attribute), self.svals)
+        return self.get_vals(elem_type='attribute')
 
     @property
     def nodes(self):
-        res = {
-            k: v for k, v in self.elems.items() if isinstance(v, Node)
-        }
-        return res
+        return self.get_elems(elem_type='node')
 
     @property
     def node_vals(self):
-        return filter(lambda x: isinstance(x, Node), self.vals)
+        return self.get_vals(unordered=True, elem_type='node')
 
     @property
     def node_svals(self):
-        return filter(lambda x: isinstance(x, Node), self.svals)
+        return self.get_vals(elem_type='node')
 
     def __iter__(self):
         return self
@@ -249,7 +244,7 @@ class Node(Element):
         if show_path and not self.is_root:
             self._print_path()
         if name_or_num is None:
-            self._ls_all(show_path, sort_by)
+            self._ls_all(show_path, sort_by, unordered, elem_type)
         else:
             elem = None
             try:
@@ -260,16 +255,19 @@ class Node(Element):
                 try:
                     elem = self.get_elem_by_name(name_or_num)
                 except KeyError:
-                    elem = self.get_elem_by_num(name_or_num, sort_by)
+                    elem = self.get_elem_by_num(
+                        name_or_num, sort_by, unordered, elem_type)
             else:
                 elem = self.get_elem_by_name(name_or_num)
             return elem
 
-    def _ls_all(self, show_path, sort_by=None):
+    def _ls_all(self, show_path, sort_by, unordered, elem_type):
         indent = ''
         if show_path:
             indent = INDENT_UNIT * self.level
-        for num, elem in enumerate(self.get_sorted_vals(sort_by),
+        for num, elem in enumerate(self.get_vals(sort_by,
+                                                 unordered,
+                                                 elem_type),
                                    start=1):
             print('%s%3d %s' % (indent, num, elem))
 
@@ -282,26 +280,67 @@ class Node(Element):
     def get_elem_by_name(self, name):
         return self.elems[name]
 
-    def get_elem_by_num(self, num, sort_by):
-        return self.get_sorted_vals(sort_by)[num - 1]
+    def get_elem_by_num(self, num, sort_by, unordered, elem_type):
+        vals = self.get_vals(sort_by, unordered, elem_type)
+        return vals[num - 1] if vals else None
 
     def _print_path(self):
         indent = INDENT_UNIT * (self.level - 1)
         print('%s%s' % (indent, self.name))
 
-    def get_sorted_vals(self, sort_by):
+    def get_elems(self, elem_type=None):
         """
-        Sort element values.
+        The generic method to get elements.
 
-        :param sort_by: the name of the attribute as the sorting key.
+        :param elem_type: the element type.  If None, then all types are
+            included. Otherwise, it is one of "file", "directory", "node", and
+            "attribute".
         """
+        elems = self.elems
+        if elem_type is not None:
+            elems = OrderedDict(self.elems)
+            if elem_type not in ('file', 'directory', 'node', 'attribute'):
+                raise NodeError('unknown element type')
+            elem_class = getattr(sys.modules[__name__], elem_type.title())
+            for elem in elems:
+                if not isinstance(elems[elem], elem_class):
+                    del elems[elem]
+        return elems
+
+    def get_vals(self, sort_by=None, unordered=False, elem_type=None):
+        """
+        The gneric method to get element values.
+
+        :param sort_by: the name of the sorting key.  If it is None and
+            `unordered` is False, then the sorting key is the element name.
+            If it is a name, then the content of the attribute with this name
+            is used as the key.
+        :param unordered: whether to present elements unordered.  If it is
+            True, the original order in the document is used, and `sort_by`
+            has no effect.
+        :param elem_type: the element type.  If None, then all types are
+            included. Otherwise, it is one of "file", "directory", "node", and
+            "attribute".
+        """
+        vals = self.vals
+        if elem_type is not None:
+            if elem_type not in ('file', 'directory', 'node', 'attribute'):
+                raise NodeError('unknown element type')
+            elem_class = getattr(sys.modules[__name__], elem_type.title())
+            vals = filter(lambda elem: isinstance(elem, elem_class), vals)
+
+        if unordered:
+            return vals
+
+        if sort_by is None:
+            return sorted(vals, key=attrgetter('name'))
+
         def sort_key(elem):
-            if getattr(elem, 'attrs', None):
+            if getattr(elem, 'attrs'):
                 return elem.attrs.get(sort_by)
+            return None
 
-        if sort_by is not None:
-            return sorted(self.vals, key=sort_by)
-        return self.svals
+        return sorted(self.vals, key=sort_key)
 
 
 class NodeError(Exception):

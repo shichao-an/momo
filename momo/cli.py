@@ -35,6 +35,8 @@ def subparser_ls(p):
                    help='run a command on an element')
     p.add_argument('-c', '--cmd', nargs='?', const=False, metavar='NUM',
                    help='execute saved command(s)')
+    p.add_argument('-t', '--type',
+                   help='eleme type')
 
 
 def subparser_pl(p):
@@ -54,7 +56,8 @@ def do_ls(args):
         parent = elem
         name_or_num = names.pop(0)
         elem = elem.ls(name_or_num=name_or_num,
-                       show_path=args.path)
+                       show_path=args.path,
+                       elem_type=args.type)
     action = None
     # XXX: a list item in an attribute content
     if not isinstance(elem, Element):
@@ -80,7 +83,7 @@ def do_ls(args):
             action.cmd(num=args.cmd)
     else:
         if isinstance(elem, Element):
-            elem.ls(show_path=args.path)
+            elem.ls(show_path=args.path, elem_type=args.type)
 
 
 def do_pl(args):
