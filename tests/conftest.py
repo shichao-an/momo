@@ -17,7 +17,7 @@ def testdir(request):
         shutil.rmtree(TEST_DIR)
 
 
-@pytest.fixture(scope="module", autouse=True)
+@pytest.fixture(scope="module")
 def settings_file(request):
     """Set up settings directory and file."""
     settings_d = os.path.join(TEST_DIR, 'momo')
