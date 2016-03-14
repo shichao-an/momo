@@ -8,7 +8,10 @@ from momo.utils import utf8_decode
 import argparse
 
 
-def parse_args():
+EXTRA_ARGS_PLUGINS = ('mkdocs')
+
+
+def setup_parser():
     parser = argparse.ArgumentParser(prog='momo')
     parser.add_argument('-b', '--bucket',
                         help="name of the bucket to use")
@@ -17,8 +20,7 @@ def parse_args():
     subparser_ls(pls)
     ppl = subparsers.add_parser('pl')
     subparser_pl(ppl)
-    args = parser.parse_args()
-    return args
+    return parser
 
 
 def subparser_ls(p):
@@ -86,15 +88,17 @@ def do_ls(args):
             elem.ls(show_path=args.path, elem_type=args.type)
 
 
-def do_pl(args):
+def do_pl(args, extra_args):
     plugin = getattr(plugins, args.plugin).plugin
     plugin.setup()
-    plugin.run()
+    plugin.run(extra_args=extra_args)
 
 
 def main():
-    args = parse_args()
+    parser = setup_parser()
+    args, extra_args = parser.parse_known_args()
     if args.subparser_name == 'ls':
+        args = parser.parse_args()
         do_ls(args)
     elif args.subparser_name == 'pl':
-        do_pl(args)
+        do_pl(args, extra_args)

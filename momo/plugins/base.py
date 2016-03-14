@@ -9,6 +9,10 @@ class Plugin(object):
         """Initializae the plugin"""
         raise NotImplementedError
 
-    def run(self):
-        """Run the plugin"""
+    def run(self, extra_args=None):
+        """Run the plugin
+
+        :param extra_args: a list of command-line arguments to pass to the
+            underlying plugin.
+        """
         raise NotImplementedError

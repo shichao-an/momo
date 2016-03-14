@@ -118,15 +118,19 @@ class Mkdocs(Plugin):
             f.write('\n'.join(buf))
         return res
 
-    def _serve(self):
+    def _serve(self, args=None):
         os.chdir(self.mkdocs_dir)
-        run_cmd('mkdocs serve')
+        cmd = 'mkdocs'
+        cmd_args = ['serve']
+        if args is not None:
+            cmd_args.extend(args)
+        run_cmd(cmd=cmd, cmd_args=cmd_args)
 
-    def run(self):
+    def run(self, extra_args=None):
         pages = self._get_pages(self.settings.bucket.root)
         self.mkdocs_configs['pages'] = pages
         self._make_mkdocs_yml()
-        self._serve()
+        self._serve(extra_args)
 
 
 plugin = Mkdocs()
