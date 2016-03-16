@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, absolute_import
 from operator import attrgetter
-from momo.utils import txt_type, PY3
+from momo.utils import txt_type, PY3, utf8_decode
+from momo.actions import NodeAction, AttributeAction
 from collections import OrderedDict
 import sys
 
@@ -84,6 +85,11 @@ class Element(Base):
         else:
             self.path = parent.path[:]
             self.path.append(self.name)
+        self._action = None
+
+    @property
+    def action(self):
+        return self._action
 
     @property
     def level(self):
@@ -131,6 +137,7 @@ class Node(Element):
             # self.elems is called here so that the next-level elements are
             # loaded and the classes of the current elements are updated
             self._len = len(self.elems)
+        self._action = NodeAction(self)
 
     @property
     def is_root(self):
@@ -222,7 +229,7 @@ class Node(Element):
     next = __next__
 
     def ls(self, name_or_num=None, show_path=False, sort_by=None,
-           unordered=False, elem_type=None):
+           unordered=False, elem_type=None, **kwargs):
         """
         List and print elements of the Node object.  If `name_or_num` is not
         None, then return the element that matches.
@@ -360,8 +367,31 @@ class File(Node):
 
 
 class Attribute(Element):
+    """
+    The Attribute class.
+    """
+    def __init__(self, name, bucket, parent, content):
+        super(Attribute, self).__init__(name, bucket, parent, content)
+        self._action = AttributeAction(self)
+        self._index = None
+        self._decode_content()
+
+    def _decode_content(self):
+        if self.has_items:
+            self.content = map(utf8_decode, self.content)
+        else:
+            self.content = utf8_decode(self.content)
+
+    @property
+    def is_item(self):
+        return self._index is not None
+
+    @property
+    def has_items(self):
+        return isinstance(self.content, list)
+
     def lsattr(self, name_or_num, show_path=False):
-        """List attribute content"""
+        """List attribute content."""
         indent = ''
         if show_path:
             indent = INDENT_UNIT * (self.level + 1)
@@ -370,9 +400,12 @@ class Attribute(Element):
         except ValueError:
             msg = 'must use a integer to index list-type attribute'
             raise AttributeError(msg)
+        if not self.has_items:
+            raise AttributeError('cannot list non-list-type attribute')
         val = self.content[name_or_num - 1]
         print('%s%s[%d]: %s' % (indent, self.name, name_or_num, val))
-        return val
+        self._index = name_or_num
+        return self
 
     def ls(self, name_or_num=None, show_path=False, **kwargs):
         """
@@ -385,15 +418,17 @@ class Attribute(Element):
             return self.lsattr(name_or_num, show_path)
 
     def _ls_all(self, show_path):
+        if self._index is not None:
+            return
         indent = ''
         if show_path:
             indent = INDENT_UNIT * self.level
-        if isinstance(self.content, list):
+        if self.has_items:
             print('%s%s:' % (indent, self.name))
             indent += INDENT_UNIT
             for num, elem in enumerate(self.content, start=1):
                 print('%s%3d %s' % (indent, num, elem))
-        elif isinstance(self.content, str):
+        elif isinstance(self.content, txt_type):
             print('%s%s: %s' % (indent, self.name, self.content))
         else:
             raise AttributeError('unknow type for attribute content')

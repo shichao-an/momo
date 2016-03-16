@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, absolute_import
 from momo import plugins
-from momo.actions.default import NodeAction, AttributeAction
-from momo.core import Element
 from momo.settings import settings
 from momo.utils import utf8_decode
 import argparse
@@ -34,13 +32,13 @@ def subparser_ls(p):
     p.add_argument('-o', '--open', action='store_true',
                    help='open an element')
     p.add_argument('-r', '--run', nargs='?', const=False, metavar='COMMAND',
-                   help='run a command on an element')
+                   help='run a command on an element', type=utf8_decode)
     p.add_argument('-c', '--cmd', nargs='?', const=False, metavar='NUM',
-                   help='execute saved command(s)')
-    p.add_argument('-e', '--expand', action='store_true',
-                   help='expand attributes')
+                   help='execute saved command(s)', type=utf8_decode)
+    p.add_argument('-x', '--expand', action='store_true',
+                   help='show expanded attributes')
     p.add_argument('-t', '--type',
-                   help='eleme type')
+                   help='element type')
 
 
 def subparser_pl(p):
@@ -50,26 +48,26 @@ def subparser_pl(p):
     p.add_argument('plugin', help='run a plugin')
 
 
-def do_ls(args):
+def do_ls(args, parser):
     names = args.names
     bucket = settings.bucket
-    parent = None
     elem = bucket.root
     name_or_num = None
-    while names:
+    parent = None
+    while names and parent is not elem:
         parent = elem
         name_or_num = names.pop(0)
         elem = elem.ls(name_or_num=name_or_num,
-                       show_path=args.path,
-                       elem_type=args.type)
-    action = None
-    # XXX: a list item in an attribute content
-    if not isinstance(elem, Element):
-        action = AttributeAction(parent, name_or_num)
-    elif elem.is_attr:
-        action = AttributeAction(elem)
-    elif elem.is_node:
-        action = NodeAction(elem)
+                       show_path=args.path, expand_attr=args.expand)
+    action = elem.action
+    if elem.is_attr and elem.is_item:
+        if names:
+            parser.error('too many names or numbers')
+    if ls_action(args, action):
+        elem.ls(show_path=args.path, elem_type=args.type)
+
+
+def ls_action(args, action):
     if args.open:
         action.open()
     elif args.run is not None:
@@ -79,15 +77,14 @@ def do_ls(args):
             action.run(cmd=args.run)
     elif args.cmd is not None:
         if args.cmd is False:
-            if isinstance(elem, Element):
-                action.cmds()
-            else:
+            if action.elem.is_item:
                 action.cmd()
+            else:
+                action.cmds()
         else:
             action.cmd(num=args.cmd)
     else:
-        if isinstance(elem, Element):
-            elem.ls(show_path=args.path, elem_type=args.type)
+        return True
 
 
 def do_pl(args, extra_args):
@@ -101,6 +98,6 @@ def main():
     args, extra_args = parser.parse_known_args()
     if args.subparser_name == 'ls':
         args = parser.parse_args()
-        do_ls(args)
+        do_ls(args, parser)
     elif args.subparser_name == 'pl':
         do_pl(args, extra_args)

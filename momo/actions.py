@@ -1,6 +1,11 @@
 from momo.utils import run_cmd, open_default, txt_type
-from momo.actions.base import Action
 import re
+
+
+class Action(object):
+    def __init__(self, elem):
+        self.name = elem.name
+        self.elem = elem
 
 
 class ActionError(Exception):
@@ -8,9 +13,11 @@ class ActionError(Exception):
 
 
 class NodeAction(Action):
-
+    """
+    The NodeAction class.
+    """
     def __init__(self, node):
-        super(NodeAction, self).__init__(node.name, node)
+        super(NodeAction, self).__init__(node)
         self.default_attrname = 'path'
 
     def expand_attr(self, attrname):
@@ -90,7 +97,7 @@ class NodeAction(Action):
 
     def cmd(self, num=None, expand=True):
         """
-        Execute a saved command, which is stored in the `cmds` attribute.
+        Execute a saved command, which is stored in the "cmds" attribute.
         """
         if num is None:
             num = 1
@@ -102,14 +109,12 @@ class NodeAction(Action):
             self.run(cmd)
 
 
-class FileAction(NodeAction):
-    def __init__(self, name, file):
-        super(FileAction, self).__init__(file.name, file)
-
-
 class AttributeAction(Action):
+    """
+    The AttributeAction class.
+    """
     def __init__(self, attr, item_num=None):
-        super(AttributeAction, self).__init__(attr.name, attr)
+        super(AttributeAction, self).__init__(attr)
         num = item_num or 1
         self.item_num = int(num)
 
@@ -126,10 +131,9 @@ class AttributeAction(Action):
         """
         Run the command specified by `item_num`
         """
-        if isinstance(self.elem.content, list):
+        if self.elem.has_items:
             node = self.elem.parent
-            node_action = NodeAction(node)
-            node_action.cmd(self.item_num)
+            node.action.cmd(self.item_num)
         elif isinstance(self.elem.content, txt_type):
             self.run()
         else:
@@ -139,10 +143,9 @@ class AttributeAction(Action):
         """
         Run all commands in this attribute.
         """
-        if isinstance(self.elem.content, list):
+        if self.elem.has_items:
             node = self.elem.parent
-            node_action = NodeAction(node)
-            node_action.cmds()
+            node.action.cmds()
         elif isinstance(self.elem.content, txt_type):
             self.run()
         else:
