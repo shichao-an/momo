@@ -3,28 +3,6 @@ from momo.actions.base import Action
 import re
 
 
-class CommandParser(object):
-    """
-    The CommandParser class.
-
-    :param cmd_str: a command or command string.
-    :param default: the field name to replace '{}'.
-    :param subs: a dictionary of substituions.
-    """
-
-    def __init__(self, cmd_str, default, subs):
-        self.cmd_str = cmd_str
-        self.default = default
-        self.subs = subs
-
-    def parse_cmd(self):
-        if re.search('{\S*}', self.cmd_str):
-            t = self.cmd_str.replace('{}', '{%s}' % self.default)
-            return t.format(**self.subs)
-        else:
-            return '%s %s' % (self.cmd_str, self.subs[self.default])
-
-
 class ActionError(Exception):
     pass
 
