@@ -34,7 +34,8 @@ class Settings(object):
     _defaults = {
         'backend': 'yaml',
         'lazy_bucket': True,
-        'plugins': {}
+        'plugins': {},
+        'action': 'default'
     }
 
     def __init__(self, settings_dir=None, settings_file=None):

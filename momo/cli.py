@@ -37,6 +37,8 @@ def subparser_ls(p):
                    help='run a command on an element')
     p.add_argument('-c', '--cmd', nargs='?', const=False, metavar='NUM',
                    help='execute saved command(s)')
+    p.add_argument('-e', '--expand', action='store_true',
+                   help='expand attributes')
     p.add_argument('-t', '--type',
                    help='eleme type')
 
