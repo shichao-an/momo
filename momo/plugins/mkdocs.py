@@ -1,7 +1,7 @@
 import os
 import shutil
 import yaml
-from momo.utils import run_cmd, mkdir_p, utf8_encode
+from momo.utils import run_cmd, mkdir_p, utf8_encode, txt_type
 from momo.plugins.base import Plugin
 
 
@@ -84,7 +84,7 @@ class Mkdocs(Plugin):
         return '\n'.join(buf)
 
     def _link_attr_content(self, content):
-        if isinstance(content, str) and content.startswith('http'):
+        if isinstance(content, txt_type) and content.startswith('http'):
             content = '[%s](%s)' % (content, content)
         return content
 
@@ -93,6 +93,7 @@ class Mkdocs(Plugin):
         if not index:
             for node in elem.node_svals:
                 buf.append('## %s' % (node.name))
+                buf.append(self._make_attrs(node))
         else:
             buf.append('### Nodes')
             for node in elem.node_svals:
