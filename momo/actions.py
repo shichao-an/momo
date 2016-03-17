@@ -25,10 +25,9 @@ class NodeAction(Action):
         attr = self.get_attr(attrname)
         if isinstance(attr.content, list):
             res = []
-            subs = self._get_expand_subs(attrname)
             for item in attr.content:
                 if self.is_expandable(item):
-                    item = self.expand_str(item, subs, attrname)
+                    item = self.expand_str(item, attrname)
                     res.append(item)
                 else:
                     res.append(item)
@@ -36,7 +35,7 @@ class NodeAction(Action):
         else:
             res = attr.content
             if self.is_expandable(res):
-                res = self.expand_str(res, subs, attrname)
+                res = self.expand_str(res, attrname)
             return res
 
     def expand_str(self, s, exclude=None):

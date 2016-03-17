@@ -390,7 +390,7 @@ class Attribute(Element):
     def has_items(self):
         return isinstance(self.content, list)
 
-    def lsattr(self, name_or_num, show_path=False):
+    def lsattr(self, name_or_num, show_path=False, expand_attr=False):
         """List attribute content."""
         indent = ''
         if show_path:
@@ -400,35 +400,42 @@ class Attribute(Element):
         except ValueError:
             msg = 'must use a integer to index list-type attribute'
             raise AttributeError(msg)
+        content = self.content
+        if expand_attr:
+            content = self.parent.action.expand_attr(self.name)
         if not self.has_items:
             raise AttributeError('cannot list non-list-type attribute')
-        val = self.content[name_or_num - 1]
+        val = content[name_or_num - 1]
         print('%s%s[%d]: %s' % (indent, self.name, name_or_num, val))
         self._index = name_or_num
         return self
 
-    def ls(self, name_or_num=None, show_path=False, **kwargs):
+    def ls(self, name_or_num=None, show_path=False, expand_attr=False,
+           **kwargs):
         """
         List content of the attribute. If `name_or_num` is not None, return
         the matched item of the content.
         """
         if name_or_num is None:
-            self._ls_all(show_path)
+            self._ls_all(show_path, expand_attr)
         else:
-            return self.lsattr(name_or_num, show_path)
+            return self.lsattr(name_or_num, show_path, expand_attr)
 
-    def _ls_all(self, show_path):
+    def _ls_all(self, show_path, expand_attr):
         if self._index is not None:
             return
         indent = ''
         if show_path:
             indent = INDENT_UNIT * self.level
+        content = self.content
+        if expand_attr:
+            content = self.parent.action.expand_attr(self.name)
         if self.has_items:
             print('%s%s:' % (indent, self.name))
             indent += INDENT_UNIT
-            for num, elem in enumerate(self.content, start=1):
-                print('%s%3d %s' % (indent, num, elem))
-        elif isinstance(self.content, txt_type):
-            print('%s%s: %s' % (indent, self.name, self.content))
+            for num, item in enumerate(content, start=1):
+                print('%s%3d %s' % (indent, num, item))
+        elif isinstance(content, txt_type):
+            print('%s%s: %s' % (indent, self.name, content))
         else:
             raise AttributeError('unknow type for attribute content')

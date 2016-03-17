@@ -64,7 +64,8 @@ def do_ls(args, parser):
         if names:
             parser.error('too many names or numbers')
     if ls_action(args, action):
-        elem.ls(show_path=args.path, elem_type=args.type)
+        elem.ls(show_path=args.path, elem_type=args.type,
+                expand_attr=args.expand)
 
 
 def ls_action(args, action):
