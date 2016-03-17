@@ -1,6 +1,7 @@
 import os
 import shutil
 import yaml
+import glob
 from momo.utils import run_cmd, mkdir_p, utf8_encode, txt_type
 from momo.plugins.base import Plugin
 
@@ -28,6 +29,10 @@ class Mkdocs(Plugin):
         shutil.rmtree(self.docs_dir)
         mkdir_p(self.docs_dir)
         mkdir_p(self.site_dir)
+        css_files = glob.glob(os.path.join(self.mkdocs_dir, '*.css'))
+        for css in css_files:
+            filename = os.path.basename(css)
+            os.symlink(css, os.path.join(self.docs_dir, filename))
 
     def _get_pages(self, root, level=0):
         if level == self.momo_configs['page_level']:
@@ -79,8 +84,19 @@ class Mkdocs(Plugin):
         buf = []
         buf.append('### Attributes')
         for attr in elem.attr_svals:
-            buf.append('- %s: %s' % (attr.name,
-                                     self._link_attr_content(attr.content)))
+            buf.append('\n')
+            buf.append('- %s:%s' % (attr.name, self._make_attr_content(attr)))
+        return '\n'.join(buf)
+
+    def _make_attr_content(self, attr):
+        buf = []
+        if attr.has_items:
+            buf.append('\n')
+            for i, item in enumerate(attr.content, start=1):
+                buf.append('    - %s[%d]: %s' % (attr.name, i,
+                           self._link_attr_content(item)))
+        else:
+            buf.append(' %s' % attr.content)
         return '\n'.join(buf)
 
     def _link_attr_content(self, content):
