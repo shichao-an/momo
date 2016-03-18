@@ -94,15 +94,28 @@ class Mkdocs(Plugin):
             buf.append('\n')
             for i, item in enumerate(attr.content, start=1):
                 buf.append('    - %s[%d]: %s' % (attr.name, i,
-                           self._link_attr_content(item)))
+                           self._make_link(item)))
         else:
-            buf.append(' %s' % attr.content)
+            buf.append(' %s' % self._make_object(attr))
         return '\n'.join(buf)
 
-    def _link_attr_content(self, content):
+    def _make_object(self, attr):
+        name = attr.name
+        content = attr.content
+        if name.lower() in ('url', 'link'):
+            return self._make_link(content)
+        elif name.lower() in ('image', 'picture', 'photo'):
+            return self._make_image(content)
+        return content
+
+    def _make_link(self, content):
         if isinstance(content, txt_type) and content.startswith('http'):
             content = '[%s](%s)' % (content, content)
         return content
+
+    def _make_image(self, content):
+        if isinstance(content, txt_type) and content.startswith('http'):
+            return '[![image]({image})]({image} "image")'.format(image=content)
 
     def _make_nodes(self, elem, index=False, level=None):
         buf = []
