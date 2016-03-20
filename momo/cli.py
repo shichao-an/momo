@@ -78,7 +78,7 @@ def ls_action(args, action):
             action.run(cmd=args.run)
     elif args.cmd is not None:
         if args.cmd is False:
-            if action.elem.is_item:
+            if action.elem.is_attr and action.elem.is_item:
                 action.cmd()
             else:
                 action.cmds()
