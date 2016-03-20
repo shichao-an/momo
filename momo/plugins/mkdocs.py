@@ -17,19 +17,26 @@ class Mkdocs(Plugin):
     def setup(self):
         configs = self.settings.plugins.get('mkdocs', {})
         self.mkdocs_configs['site_name'] = self.settings.bucket.name
+
         for k in configs:
             if not k.startswith('momo_'):
                 self.mkdocs_configs[k] = configs[k]
         for k in configs:
             if k.startswith('momo_'):
                 self.momo_configs[k] = configs[k]
-        self.mkdocs_dir = os.path.join(self.settings.settings_dir, 'mkdocs')
+
+        self.mkdocs_root_dir = os.path.join(self.settings.settings_dir,
+                                            'mkdocs')
+        self.mkdocs_dir = os.path.join(self.mkdocs_root_dir,
+                                       self.settings.bucket.name)
         self.docs_dir = os.path.join(self.mkdocs_dir, 'docs')
         self.site_dir = os.path.join(self.mkdocs_dir, 'site')
-        shutil.rmtree(self.docs_dir)
+        if os.path.exists(self.docs_dir):
+            shutil.rmtree(self.docs_dir)
         mkdir_p(self.docs_dir)
         mkdir_p(self.site_dir)
         css_files = glob.glob(os.path.join(self.mkdocs_dir, '*.css'))
+        css_files += glob.glob(os.path.join(self.mkdocs_root_dir, '*.css'))
         for css in css_files:
             filename = os.path.basename(css)
             os.symlink(css, os.path.join(self.docs_dir, filename))
@@ -114,8 +121,10 @@ class Mkdocs(Plugin):
         return content
 
     def _make_image(self, content):
+        res = '\n\n'
         if isinstance(content, txt_type) and content.startswith('http'):
-            return '[![image]({image})]({image} "image")'.format(image=content)
+            res += '[![image]({image})]({image} "image")'.format(image=content)
+        return res
 
     def _make_nodes(self, elem, index=False, level=None):
         buf = []
@@ -151,8 +160,10 @@ class Mkdocs(Plugin):
     def _serve(self, args=None):
         os.chdir(self.mkdocs_dir)
         cmd = 'mkdocs'
-        cmd_args = ['serve']
-        if args is not None:
+        cmd_args = []
+        if not args:
+            cmd_args = ['serve']
+        else:
             cmd_args.extend(args)
         run_cmd(cmd=cmd, cmd_args=cmd_args)
 

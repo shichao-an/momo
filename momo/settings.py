@@ -42,6 +42,7 @@ class Settings(object):
         self._backend = self._defaults['backend']
         self._buckets = None
         self._settings = None
+        self._cbn = None  # current bucket name
         self.settings_dir = settings_dir or self._get_settings_dir()
         self.settings_file = settings_file or self._get_settings_file()
 
@@ -85,14 +86,14 @@ class Settings(object):
         if self._settings is not None:
             if 'buckets' in self._settings:
                 self._buckets = {
-                    name: self._to_bucket(name, path)
+                    name: self.to_bucket(name, eval_path(path))
                     for name, path in self._settings['buckets'].items()
                 }
         if self._buckets is None:
             name = 'default'
             path = self._get_default_bucket_path()
             self._buckets = {
-                name: self.to_bucket(name, path)
+                name: self.to_bucket(name, eval_path(path))
             }
         return self._buckets
 
@@ -104,10 +105,14 @@ class Settings(object):
     @property
     def bucket(self):
         """
-        Get the default bucket.
-
+        Get the current bucket.
         """
-        return self.buckets['default']
+        name = 'default'
+        if self._cbn is not None:
+            name = self._cbn
+        if name not in self.buckets:
+            raise SettingsError('bucket "%s" does not exist' % name)
+        return self.buckets[name]
 
     @property
     def backend(self):

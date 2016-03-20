@@ -97,6 +97,7 @@ def do_pl(args, extra_args):
 def main():
     parser = setup_parser()
     args, extra_args = parser.parse_known_args()
+    settings._cbn = args.bucket
     if args.subparser_name == 'ls':
         args = parser.parse_args()
         do_ls(args, parser)
