@@ -11,7 +11,7 @@ class Mkdocs(Plugin):
         'theme': 'readthedocs',
     }
     momo_configs = {
-        'page_level': 1,
+        'momo_page_level': 1,
     }
 
     def setup(self):
@@ -42,7 +42,7 @@ class Mkdocs(Plugin):
             os.symlink(css, os.path.join(self.docs_dir, filename))
 
     def _get_pages(self, root, level=0):
-        if level == self.momo_configs['page_level']:
+        if level == self.momo_configs['momo_page_level']:
             filename = self._make_page(root)
             return filename
         else:
@@ -113,6 +113,8 @@ class Mkdocs(Plugin):
             return self._make_link(content)
         elif name.lower() in ('image', 'picture', 'photo'):
             return self._make_image(content)
+        else:
+            return self._make_link(content)
         return content
 
     def _make_link(self, content):
@@ -135,7 +137,7 @@ class Mkdocs(Plugin):
         else:
             buf.append('### Nodes')
             for node in elem.node_svals:
-                if level == self.momo_configs['page_level']:
+                if level == self.momo_configs['momo_page_level']:
                     buf.append('- [%s](%s.md)' % (node.name, node.name))
                 else:
                     buf.append('- [%s](%s/index.md)' % (node.name, node.name))
