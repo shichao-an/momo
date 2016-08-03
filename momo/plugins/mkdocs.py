@@ -35,11 +35,11 @@ class Mkdocs(Plugin):
             shutil.rmtree(self.docs_dir)
         mkdir_p(self.docs_dir)
         mkdir_p(self.site_dir)
-        css_files = glob.glob(os.path.join(self.mkdocs_dir, '*.css'))
-        css_files += glob.glob(os.path.join(self.mkdocs_root_dir, '*.css'))
-        for css in css_files:
-            filename = os.path.basename(css)
-            os.symlink(css, os.path.join(self.docs_dir, filename))
+        assets = glob.glob(os.path.join(self.mkdocs_dir, '*'))
+        for asset in assets:
+            filename = os.path.basename(asset)
+            if filename not in set(['docs', 'site', 'mkdocs.yml']):
+                os.symlink(asset, os.path.join(self.docs_dir, filename))
 
     def _get_pages(self, root, level=0):
         if level == self.momo_configs['momo_page_level']:
