@@ -89,7 +89,7 @@ class Mkdocs(Plugin):
 
     def _make_attrs(self, elem):
         buf = []
-        buf.append('### Attributes')
+        # buf.append('### Attributes')
         for attr in elem.attr_svals:
             buf.append('\n')
             buf.append('- %s:%s' % (attr.name, self._make_attr_content(attr)))
