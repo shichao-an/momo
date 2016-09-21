@@ -12,6 +12,8 @@ class Mkdocs(Plugin):
     }
     momo_configs = {
         'momo_page_level': 1,
+        'momo_attr_table': True,
+        'momo_attr_css': True,
     }
 
     def setup(self):
@@ -89,10 +91,43 @@ class Mkdocs(Plugin):
 
     def _make_attrs(self, elem):
         buf = []
-        # buf.append('### Attributes')
-        for attr in elem.attr_svals:
-            buf.append('\n')
-            buf.append('- %s:%s' % (attr.name, self._make_attr_content(attr)))
+        if self.momo_configs['momo_attr_css']:
+            name_fmt = ('<span class="momo-attr-name '
+                        'momo-attr-name-{name}">'
+                        '{name}</span>')
+        else:
+            name_fmt = '{name}'
+        if self.momo_configs['momo_attr_css']:
+            content_fmt = ('<span class="momo-attr-content '
+                           'momo-attr-content-{name}">'
+                           '{content}</span>')
+        else:
+            content_fmt = '{content}'
+        if self.momo_configs['momo_attr_table']:
+            buf.append('')
+            buf.append('|')
+            buf.append('- | -')
+            for attr in elem.attr_svals:
+                buf.append(
+                    txt_type(name_fmt + ' | ' + content_fmt).format(
+                        name=attr.name,
+                        content=self._make_attr_content(attr).strip()
+                    )
+                )
+            else:
+                buf = []
+            buf.append('')
+        else:
+            for attr in elem.attr_svals:
+                buf.append('\n')
+                buf.append(
+                    '- %s:%s' % (attr.name, self._make_attr_content(attr)))
+                buf.append(
+                    txt_type('- ' + name_fmt + ':' + content_fmt).format(
+                        name=attr.name,
+                        content=self._make_attr_content(attr).strip()
+                    )
+                )
         return '\n'.join(buf)
 
     def _make_attr_content(self, attr):
@@ -111,7 +146,7 @@ class Mkdocs(Plugin):
         content = attr.content
         if name.lower() in ('url', 'link'):
             return self._make_link(content)
-        elif name.lower() in ('image', 'picture', 'photo'):
+        elif name.lower() in ('image'):
             return self._make_image(content)
         else:
             return self._make_link(content)
