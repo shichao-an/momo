@@ -104,9 +104,10 @@ class Mkdocs(Plugin):
         else:
             content_fmt = '{content}'
         if self.momo_configs['momo_attr_table']:
-            buf.append('')
-            buf.append('|')
-            buf.append('- | -')
+            if elem.attr_svals:
+                buf.append('')
+                buf.append('|')
+                buf.append('- | -')
             for attr in elem.attr_svals:
                 buf.append(
                     txt_type(name_fmt + ' | ' + content_fmt).format(
@@ -114,8 +115,6 @@ class Mkdocs(Plugin):
                         content=self._make_attr_content(attr).strip()
                     )
                 )
-            else:
-                buf = []
             buf.append('')
         else:
             for attr in elem.attr_svals:
