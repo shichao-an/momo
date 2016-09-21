@@ -134,11 +134,18 @@ class Mkdocs(Plugin):
         if attr.has_items:
             buf.append('\n')
             for i, item in enumerate(attr.content, start=1):
-                buf.append('    - %s[%d]: %s' % (attr.name, i,
-                           self._make_link(item)))
+                if self.momo_configs['momo_attr_table']:
+                    buf.append(self._make_link(item))
+                else:
+                    buf.append('    - %s' % (self._make_link(item)))
         else:
             buf.append(' %s' % self._make_object(attr))
-        return '\n'.join(buf)
+        if self.momo_configs['momo_attr_table']:
+            if buf and buf[0] == '\n':
+                buf.pop(0)
+            return '<br>'.join(buf)
+        else:
+            return '\n'.join(buf)
 
     def _make_object(self, attr):
         name = attr.name
