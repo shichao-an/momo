@@ -354,7 +354,7 @@ class NodeError(Exception):
     pass
 
 
-class AttributeError(Exception):
+class AttrError(Exception):
     pass
 
 
@@ -399,12 +399,12 @@ class Attribute(Element):
             name_or_num = int(name_or_num)
         except ValueError:
             msg = 'must use a integer to index list-type attribute'
-            raise AttributeError(msg)
+            raise AttrError(msg)
         content = self.content
         if expand_attr:
             content = self.parent.action.expand_attr(self.name)
         if not self.has_items:
-            raise AttributeError('cannot list non-list-type attribute')
+            raise AttrError('cannot list non-list-type attribute')
         val = content[name_or_num - 1]
         print('%s%s[%d]: %s' % (indent, self.name, name_or_num, val))
         self._index = name_or_num
@@ -438,4 +438,4 @@ class Attribute(Element):
         elif isinstance(content, txt_type):
             print('%s%s: %s' % (indent, self.name, content))
         else:
-            raise AttributeError('unknow type for attribute content')
+            raise AttrError('unknow type for attribute content')
