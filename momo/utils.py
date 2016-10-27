@@ -3,12 +3,14 @@ from __future__ import print_function, absolute_import
 import errno
 import os
 import platform
+import pydoc
 import sh
 import six
 import shlex
 import sys
 
 
+MIN_PAGE_LINES = 50
 PY3 = sys.version_info[0] == 3
 
 if PY3:
@@ -88,3 +90,14 @@ def mkdir_p(path):
             pass
         else:
             raise
+
+
+def page_lines(lines):
+    if not lines:
+        return
+    text = '\n'.join(lines)
+    os.environ['LESS'] = 'FRSX'
+    if len(lines) >= MIN_PAGE_LINES:
+        pydoc.pager(text)
+    else:
+        print(text)

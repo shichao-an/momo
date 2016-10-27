@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, absolute_import
+from contextlib import contextmanager
 from operator import attrgetter
 from momo.utils import txt_type, PY3, utf8_decode
 from momo.actions import NodeAction, AttributeAction
@@ -9,6 +10,18 @@ import sys
 
 ROOT_NODE_NAME = '(root)'
 INDENT_UNIT = '  '
+LINES = []  # cached lines
+
+
+@contextmanager
+def lines(lines=None):
+    if lines is None:
+        global LINES
+        lines = LINES
+    try:
+        yield lines
+    finally:
+        del lines[:]
 
 
 class Base(object):
@@ -75,17 +88,31 @@ class Element(Base):
     """
     The Element class.
     """
-    def __init__(self, name, bucket, parent, content):
+    def __init__(self, name, bucket, parent, content, cache_lines=False):
         self.name = name
         self.bucket = bucket
         self.parent = parent
         self.content = content
+        self.cache_lines = cache_lines
+        self._lines = []
         if parent is None:
             self.path = []
         else:
             self.path = parent.path[:]
             self.path.append(self.name)
         self._action = None
+
+    @property
+    def lines(self):
+        if self.cache_lines:
+            return LINES
+        else:
+            return self._lines
+
+    def flush_lines(self):
+        if self._lines:
+            with lines(self._lines) as _lines:
+                print('\n'.join(_lines))
 
     @property
     def action(self):
@@ -127,8 +154,9 @@ class Node(Element):
     """
     The Node class.
     """
-    def __init__(self, name, bucket, parent, content):
-        super(Node, self).__init__(name, bucket, parent, content)
+    def __init__(self, name, bucket, parent, content, *args, **kwargs):
+        super(Node, self).__init__(name, bucket, parent, content,
+                                   *args, **kwargs)
         self._elems = None
         self._vals = None
         self._i = 0
@@ -163,14 +191,16 @@ class Node(Element):
                         Attribute(name=name,
                                   bucket=self.bucket,
                                   parent=self,
-                                  content=content)
+                                  content=content,
+                                  cache_lines=self.cache_lines)
                     )
                 else:
                     is_dir = True
                     elem = Node(name=name,
                                 bucket=self.bucket,
                                 parent=self,
-                                content=content)
+                                content=content,
+                                cache_lines=self.cache_lines)
                 self._elems[name] = elem
             if is_dir is True:
                 self.__class__ = Directory
@@ -269,14 +299,17 @@ class Node(Element):
             return elem
 
     def _ls_all(self, show_path, sort_by, unordered, elem_type):
-        indent = ''
-        if show_path:
-            indent = INDENT_UNIT * self.level
-        for num, elem in enumerate(self.get_vals(sort_by,
-                                                 unordered,
-                                                 elem_type),
-                                   start=1):
-            print('%s%3d %s' % (indent, num, elem))
+        try:
+            indent = ''
+            if show_path:
+                indent = INDENT_UNIT * self.level
+            vals = self.get_vals(sort_by, unordered, elem_type)
+            width = len(str(len(vals)))
+            fmt = '%s%{}d %s'.format(width)
+            for num, elem in enumerate(vals, start=1):
+                self.lines.append(fmt % (indent, num, elem))
+        finally:
+            self.flush_lines()
 
     @property
     def len(self):
@@ -293,7 +326,7 @@ class Node(Element):
 
     def _print_path(self):
         indent = INDENT_UNIT * (self.level - 1)
-        print('%s%s' % (indent, self.name))
+        self.lines.append('%s%s' % (indent, self.name))
 
     def get_elems(self, elem_type=None):
         """
@@ -370,8 +403,9 @@ class Attribute(Element):
     """
     The Attribute class.
     """
-    def __init__(self, name, bucket, parent, content):
-        super(Attribute, self).__init__(name, bucket, parent, content)
+    def __init__(self, name, bucket, parent, content, *args, **kwargs):
+        super(Attribute, self).__init__(name, bucket, parent, content,
+                                        *args, **kwargs)
         self._action = AttributeAction(self)
         self._index = None
         self._decode_content()
@@ -392,23 +426,27 @@ class Attribute(Element):
 
     def lsattr(self, name_or_num, show_path=False, expand_attr=False):
         """List attribute content."""
-        indent = ''
-        if show_path:
-            indent = INDENT_UNIT * (self.level + 1)
         try:
-            name_or_num = int(name_or_num)
-        except ValueError:
-            msg = 'must use a integer to index list-type attribute'
-            raise AttrError(msg)
-        content = self.content
-        if expand_attr:
-            content = self.parent.action.expand_attr(self.name)
-        if not self.has_items:
-            raise AttrError('cannot list non-list-type attribute')
-        val = content[name_or_num - 1]
-        print('%s%s[%d]: %s' % (indent, self.name, name_or_num, val))
-        self._index = name_or_num
-        return self
+            indent = ''
+            if show_path:
+                indent = INDENT_UNIT * (self.level + 1)
+            try:
+                name_or_num = int(name_or_num)
+            except ValueError:
+                msg = 'must use a integer to index list-type attribute'
+                raise AttrError(msg)
+            content = self.content
+            if expand_attr:
+                content = self.parent.action.expand_attr(self.name)
+            if not self.has_items:
+                raise AttrError('cannot list non-list-type attribute')
+            val = content[name_or_num - 1]
+            self.lines.append(
+                '%s%s[%d]: %s' % (indent, self.name, name_or_num, val))
+            self._index = name_or_num
+            return self
+        finally:
+            self.flush_lines()
 
     def ls(self, name_or_num=None, show_path=False, expand_attr=False,
            **kwargs):
@@ -422,20 +460,25 @@ class Attribute(Element):
             return self.lsattr(name_or_num, show_path, expand_attr)
 
     def _ls_all(self, show_path, expand_attr):
-        if self._index is not None:
-            return
-        indent = ''
-        if show_path:
-            indent = INDENT_UNIT * self.level
-        content = self.content
-        if expand_attr:
-            content = self.parent.action.expand_attr(self.name)
-        if self.has_items:
-            print('%s%s:' % (indent, self.name))
-            indent += INDENT_UNIT
-            for num, item in enumerate(content, start=1):
-                print('%s%3d %s' % (indent, num, item))
-        elif isinstance(content, txt_type):
-            print('%s%s: %s' % (indent, self.name, content))
-        else:
-            raise AttrError('unknow type for attribute content')
+        try:
+            if self._index is not None:
+                return
+            indent = ''
+            if show_path:
+                indent = INDENT_UNIT * self.level
+            content = self.content
+            if expand_attr:
+                content = self.parent.action.expand_attr(self.name)
+            if self.has_items:
+                self.lines.append('%s%s:' % (indent, self.name))
+                indent += INDENT_UNIT
+                width = len(str(len(content)))
+                fmt = '%s%{}d %s'.format(width)
+                for num, item in enumerate(content, start=1):
+                    self.lines.append(fmt % (indent, num, item))
+            elif isinstance(content, txt_type):
+                self.lines.append('%s%s: %s' % (indent, self.name, content))
+            else:
+                raise AttrError('unknow type for attribute content')
+        finally:
+            self.flush_lines()

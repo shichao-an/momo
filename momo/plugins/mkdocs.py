@@ -208,13 +208,14 @@ class Mkdocs(Plugin):
             cmd_args = ['serve']
         else:
             cmd_args.extend(args)
+        print(cmd_args)
         run_cmd(cmd=cmd, cmd_args=cmd_args)
 
-    def run(self, extra_args=None):
+    def run(self, args=None):
         pages = self._get_pages(self.settings.bucket.root)
         self.mkdocs_configs['pages'] = pages
         self._make_mkdocs_yml()
-        self._serve(extra_args)
+        self._serve(args)
 
 
 plugin = Mkdocs()

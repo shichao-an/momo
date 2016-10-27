@@ -19,6 +19,10 @@ setup(
         'console_scripts': [
             'momo = momo.cli:main',
         ],
+        'momo.cli': [
+            'ls = momo.cli:Ls',
+            'pl = momo.cli:Pl',
+        ],
     },
     classifiers=[
         "License :: OSI Approved :: BSD License",
