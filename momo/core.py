@@ -487,9 +487,9 @@ class Attribute(Element):
                 fmt = '%s%{}d %s'.format(width)
                 for num, item in enumerate(content, start=1):
                     self.lines.append(fmt % (indent, num, item))
-            elif isinstance(content, txt_type):
+            elif isinstance(content, (txt_type, bool)):
                 self.lines.append('%s%s: %s' % (indent, self.name, content))
             else:
-                raise AttrError('unknow type for attribute content')
+                raise AttrError('unknown type for attribute content')
         finally:
             self.flush_lines()
