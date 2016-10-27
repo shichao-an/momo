@@ -289,9 +289,9 @@ class Node(Element):
             except ValueError:
                 pass
             if isinstance(name_or_num, int):
-                try:
+                if str(name_or_num) in self.elems:
                     elem = self.get_elem_by_name(name_or_num)
-                except KeyError:
+                else:
                     elem = self.get_elem_by_num(
                         name_or_num, sort_by, unordered, elem_type)
             else:
@@ -318,11 +318,18 @@ class Node(Element):
         return self._len
 
     def get_elem_by_name(self, name):
-        return self.elems[name]
+        try:
+            return self.elems[name]
+        except KeyError:
+            raise ElemError('element %s does not exist' % name)
 
     def get_elem_by_num(self, num, sort_by, unordered, elem_type):
         vals = self.get_vals(sort_by, unordered, elem_type)
-        return vals[num - 1] if vals else None
+        try:
+            return vals[num - 1] if vals else None
+        except IndexError:
+            raise ElemError(
+                'element index out of range (1-%d)' % len(vals))
 
     def _print_path(self):
         indent = INDENT_UNIT * (self.level - 1)
@@ -381,6 +388,10 @@ class Node(Element):
             return None
 
         return sorted(self.vals, key=sort_key)
+
+
+class ElemError(Exception):
+    pass
 
 
 class NodeError(Exception):
