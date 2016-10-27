@@ -208,7 +208,6 @@ class Mkdocs(Plugin):
             cmd_args = ['serve']
         else:
             cmd_args.extend(args)
-        print(cmd_args)
         run_cmd(cmd=cmd, cmd_args=cmd_args)
 
     def run(self, args=None):
