@@ -2,6 +2,10 @@ from __future__ import absolute_import
 from momo.backends.base import Document
 import ruamel.yaml
 
+INDENT = 4
+BLOCK_SEQ_INDENT = 4
+WIDTH = 500
+
 
 class BucketDocument(Document):
     """
@@ -30,5 +34,6 @@ class BucketDocument(Document):
         Dump the content to the bucket file.
         """
         with open(self.path, 'w') as f:
-            ruamel.yaml.round_trip_dump(
-                content, f, indent=4, block_seq_indent=2, width=500)
+            ruamel.yaml.round_trip_dump(content, f, indent=INDENT,
+                                        block_seq_indent=BLOCK_SEQ_INDENT,
+                                        width=WIDTH)
