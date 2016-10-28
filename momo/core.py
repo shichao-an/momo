@@ -88,12 +88,19 @@ class Element(Base):
     """
     The Element class.
     """
-    def __init__(self, name, bucket, parent, content, cache_lines=False):
+    def __init__(self, name, bucket, parent, content, cache_lines=False,
+                 no_output=False):
+        """
+        :param cache_lines: whether to cache lines to the global LINES
+                            variable.
+        :param no_output: whether to suppress output.
+        """
         self.name = name
         self.bucket = bucket
         self.parent = parent
         self.content = content
         self.cache_lines = cache_lines
+        self.no_output = no_output
         self._lines = []
         if parent is None:
             self.path = []
@@ -112,7 +119,8 @@ class Element(Base):
     def flush_lines(self):
         if self._lines:
             with lines(self._lines) as _lines:
-                print('\n'.join(_lines))
+                if not self.no_output:
+                    print('\n'.join(_lines))
 
     @property
     def action(self):
@@ -265,16 +273,17 @@ class Node(Element):
         None, then return the element that matches.
 
         :param name_or_num: element name or number.  The name has higher
-            precedence than number.
+                            precedence than number.
         :param show_path: whether to show path to the element.
         :param sort_by: the name of the sorting key.  If it is None, then the
-            sorting key is the element name.  If it is a name, then the
-            content of the attribute with this name is used as the key.
+                        sorting key is the element name.  If it is a name, then
+                        the content of the attribute with this name is used as
+                        the key.
         :param unordered: whether to present elements unordered.  If it is
-            True, the original order in the document is used.
+                          True, the original order in the document is used.
         :param elem_type: the element type.  If None, then all types are
-            included. Otherwise, it is one of "file", "directory", "node", and
-            "attribute".
+                          included. Otherwise, it is one of "file",
+                          "directory", "node", and "attribute".
 
         :return: the element that matches `name_or_num` (if it is not None)
         """
@@ -340,8 +349,8 @@ class Node(Element):
         The generic method to get elements.
 
         :param elem_type: the element type.  If None, then all types are
-            included. Otherwise, it is one of "file", "directory", "node", and
-            "attribute".
+                          included. Otherwise, it is one of "file",
+                          "directory", "node", and "attribute".
         """
         elems = self.elems
         if elem_type is not None:
@@ -359,15 +368,15 @@ class Node(Element):
         The gneric method to get element values.
 
         :param sort_by: the name of the sorting key.  If it is None and
-            `unordered` is False, then the sorting key is the element name.
-            If it is a name, then the content of the attribute with this name
-            is used as the key.
+                        `unordered` is False, then the sorting key is the
+                        element name.  If it is a name, then the content of the
+                        attribute with this name is used as the key.
         :param unordered: whether to present elements unordered.  If it is
-            True, the original order in the document is used, and `sort_by`
-            has no effect.
+                          True, the original order in the document is used, and
+                          `sort_by` has no effect.
         :param elem_type: the element type.  If None, then all types are
-            included. Otherwise, it is one of "file", "directory", "node", and
-            "attribute".
+                          included. Otherwise, it is one of "file",
+                          "directory", "node", and "attribute".
         """
         vals = self.vals
         if elem_type is not None:

@@ -27,7 +27,8 @@ class BucketDocument(Document):
 
         """
         with open(self.path) as f:
-            return ruamel.yaml.load(f.read(), ruamel.yaml.RoundTripLoader)
+            return ruamel.yaml.load(f.read(), ruamel.yaml.RoundTripLoader,
+                                    preserve_quotes=True)
 
     def dump(self, content):
         """
