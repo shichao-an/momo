@@ -447,6 +447,8 @@ class Attribute(Element):
     def lsattr(self, name_or_num, show_path=False, expand_attr=False):
         """List attribute content."""
         try:
+            if not self.has_items:
+                raise AttrError('cannot list non-list-type attribute')
             indent = ''
             if show_path:
                 indent = INDENT_UNIT * (self.level + 1)
@@ -458,8 +460,6 @@ class Attribute(Element):
             content = self.content
             if expand_attr:
                 content = self.parent.action.expand_attr(self.name)
-            if not self.has_items:
-                raise AttrError('cannot list non-list-type attribute')
             val = content[name_or_num - 1]
             self.lines.append(
                 '%s%s[%d]: %s' % (indent, self.name, name_or_num, val))

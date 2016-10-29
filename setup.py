@@ -22,6 +22,7 @@ setup(
         'momo.cli': [
             'ls = momo.cli:Ls',
             'pl = momo.cli:Pl',
+            'add = momo.cli:Add',
         ],
     },
     classifiers=[

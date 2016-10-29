@@ -78,6 +78,22 @@ class Ls(Command):
         do_ls(parsed_args, self.parser)
 
 
+class Add(Command):
+    def get_parser(self, prog_name):
+        """
+        The parser for sub-command "ls".
+        """
+        p = super(Add, self).get_parser(prog_name)
+        p.add_argument('names', nargs='*', type=utf8_decode,
+                       help='names or numbers to identify element')
+        # save the parser
+        self.parser = p
+        return p
+
+    def take_action(self, parsed_args):
+        do_add(parsed_args, self.parser)
+
+
 class Pl(Command):
     """Use plugins."""
 
@@ -97,26 +113,86 @@ class Pl(Command):
 
 
 def do_ls(args, parser):
-    names = args.names
     bucket = settings.bucket
     elem = bucket.root
     elem.cache_lines = True
-    name_or_num = None
-    parent = None
     with momo.core.lines() as lines:
+        indexer = Indexer(
+            elem=elem,
+            parser=parser,
+            names=args.names,
+            unordered=True,
+            show_path=args.path,
+            elem_type=args.type,
+            expand_attr=args.expand,
+            cache_lines=True,
+            to_open=args.open,
+            run=args.run,
+            cmd=args.cmd,
+        )
+        indexer.ls()
+        page_lines(lines)
+
+
+def do_add(args, parser):
+    bucket = settings.bucket
+    elem = bucket.root
+    elem.cache_lines = True
+    with momo.core.lines() as lines:
+        indexer = Indexer(
+            elem=elem,
+            parser=parser,
+            names=args.names,
+            unordered=True,
+        )
+        e = indexer.get()
+        print(e)
+        page_lines(lines)
+
+
+class Indexer(object):
+    def __init__(self, elem, parser, names, unordered=True, show_path=False,
+                 elem_type=None, expand_attr=False, cache_lines=True,
+                 to_open=False, run=False, cmd=False):
+        self.elem = elem
+        self.elem.cache_lines = cache_lines
+        self.parser = parser
+        self.names = names
+        self.unordered = unordered
+        self.show_path = show_path
+        self.elem_type = elem_type
+        self.expand_attr = expand_attr
+        self.to_open = to_open
+        self.run = run
+        self.cmd = cmd
+
+    def ls(self):
+        self._ls(return_elem=False)
+
+    def get(self):
+        return self._ls(return_elem=True)
+
+    def _ls(self, return_elem):
+        elem = self.elem
+        elem.cache_lines = True
+        name_or_num = None
+        parent = None
+        names = list(self.names)
         while names and parent is not elem:
             parent = elem
             name_or_num = names.pop(0)
-            elem = elem.ls(name_or_num=name_or_num,
-                           show_path=args.path, expand_attr=args.expand)
+            elem = elem.ls(name_or_num=name_or_num, unordered=self.unordered,
+                           show_path=self.show_path,
+                           expand_attr=self.expand_attr)
+        if return_elem:
+            return elem
         action = elem.action
         if elem.is_attr and elem.is_item:
             if names:
-                parser.error('too many names or numbers')
-        if ls_action(args, action):
-            elem.ls(show_path=args.path, elem_type=args.type,
-                    expand_attr=args.expand)
-        page_lines(lines)
+                self.parser.error('too many names or numbers')
+        if ls_action(self.to_open, self.run, self.cmd, action):
+            elem.ls(show_path=self.show_path, elem_type=self.elem_type,
+                    unordered=self.unordered, expand_attr=self.expand_attr)
 
 
 def do_pl(plugin, args):
@@ -131,22 +207,22 @@ def do_pl(plugin, args):
     plugin.run(args=args)
 
 
-def ls_action(args, action):
-    if args.open:
+def ls_action(to_open, run, cmd, action):
+    if to_open:
         action.open()
-    elif args.run is not None:
-        if args.run is False:
+    elif run is not None:
+        if run is False:
             action.run()
         else:
-            action.run(cmd=args.run)
-    elif args.cmd is not None:
-        if args.cmd is False:
+            action.run(cmd=run)
+    elif cmd is not None:
+        if cmd is False:
             if action.elem.is_attr and action.elem.is_item:
                 action.cmd()
             else:
                 action.cmds()
         else:
-            action.cmd(num=args.cmd)
+            action.cmd(num=cmd)
     else:
         return True
 
