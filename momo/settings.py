@@ -42,7 +42,7 @@ class Settings(object):
         self._backend = self._defaults['backend']
         self._buckets = None
         self._settings = None
-        self._cbn = None  # current bucket name
+        self._cbn = 'default'  # current bucket name
         self.settings_dir = settings_dir or self._get_settings_dir()
         self.settings_file = settings_file or self._get_settings_file()
 
@@ -78,7 +78,7 @@ class Settings(object):
     @property
     def buckets(self):
         """
-        Get buckets as a dictionary.
+        Get all buckets as a dictionary of names to paths.
 
         :return: a dictionary of buckets
 
@@ -86,14 +86,14 @@ class Settings(object):
         if self._settings is not None:
             if 'buckets' in self._settings:
                 self._buckets = {
-                    name: self.to_bucket(name, eval_path(path))
+                    name: eval_path(path)
                     for name, path in self._settings['buckets'].items()
                 }
         if self._buckets is None:
             name = 'default'
             path = self._get_default_bucket_path()
             self._buckets = {
-                name: self.to_bucket(name, eval_path(path))
+                name: eval_path(path),
             }
         return self._buckets
 
@@ -107,16 +107,26 @@ class Settings(object):
         """
         Get the current bucket.
         """
-        name = 'default'
-        if self._cbn is not None:
-            name = self._cbn
+        name = self.cbn
         if name not in self.buckets:
             raise SettingsError('bucket "%s" does not exist' % name)
-        return self.buckets[name]
+        return self.to_bucket(name, self.buckets[name])
 
     @property
     def backend(self):
         return getattr(backends, self._backend)
+
+    @property
+    def cbn(self):
+        """
+        Get the current bucket name.
+        """
+        return self._cbn
+
+    @cbn.setter
+    def cbn(self, name):
+        """Set the current bucket name."""
+        self._cbn = name
 
     def __getattr__(self, name):
         res = None

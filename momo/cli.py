@@ -11,14 +11,15 @@ from momo.utils import utf8_decode, page_lines
 import momo.core
 
 
-class MomoCli(App):
+class MomoCliApp(App):
     def __init__(self):
-        super(MomoCli, self).__init__(
+        super(MomoCliApp, self).__init__(
             description='momo cli',
             version='0.1.0',
             command_manager=CommandManager('momo.cli'),
             deferred_help=True,
             )
+        self.bucket = None
 
     def configure_logging(self):
         """Create logging handlers for any log output.
@@ -45,6 +46,18 @@ class MomoCli(App):
         console.setFormatter(formatter)
         root_logger.addHandler(console)
         return
+
+    def build_option_parser(self, description, version,
+                            argparse_kwargs=None):
+        parser = super(MomoCliApp, self).build_option_parser(
+            description, version, argparse_kwargs)
+        parser.add_argument('-b', '--bucket', default='default',
+                            help='bucket name')
+        return parser
+
+    def initialize_app(self, argv):
+        settings.cbn = self.options.bucket  # set bucket name
+        self.bucket = settings.bucket
 
 
 class Ls(Command):
@@ -75,7 +88,7 @@ class Ls(Command):
         return p
 
     def take_action(self, parsed_args):
-        do_ls(parsed_args, self.parser)
+        do_ls(self.app.bucket, parsed_args, self.parser)
 
 
 class Add(Command):
@@ -91,7 +104,7 @@ class Add(Command):
         return p
 
     def take_action(self, parsed_args):
-        do_add(parsed_args, self.parser)
+        do_add(self.app.bucket, parsed_args, self.parser)
 
 
 class Pl(Command):
@@ -112,8 +125,7 @@ class Pl(Command):
         do_pl(parsed_args.plugin, parsed_args.args)
 
 
-def do_ls(args, parser):
-    bucket = settings.bucket
+def do_ls(bucket, args, parser):
     elem = bucket.root
     elem.cache_lines = True
     with momo.core.lines() as lines:
@@ -135,8 +147,7 @@ def do_ls(args, parser):
         page_lines(lines)
 
 
-def do_add(args, parser):
-    bucket = settings.bucket
+def do_add(bucket, args, parser):
     elem = bucket.root
     elem.cache_lines = True
     indexer = Indexer(
@@ -229,7 +240,7 @@ def ls_action(to_open, run, cmd, action):
 
 
 def main(argv=sys.argv[1:]):
-    momocli = MomoCli()
+    momocli = MomoCliApp()
     return momocli.run(argv)
 
 
