@@ -126,6 +126,7 @@ def do_ls(args, parser):
             elem_type=args.type,
             expand_attr=args.expand,
             cache_lines=True,
+            no_output=False,
             to_open=args.open,
             run=args.run,
             cmd=args.cmd,
@@ -138,22 +139,22 @@ def do_add(args, parser):
     bucket = settings.bucket
     elem = bucket.root
     elem.cache_lines = True
-    with momo.core.lines() as lines:
-        indexer = Indexer(
-            elem=elem,
-            parser=parser,
-            names=args.names,
-            unordered=True,
-        )
-        e = indexer.get()
-        print(e)
-        page_lines(lines)
+    indexer = Indexer(
+        elem=elem,
+        parser=parser,
+        names=args.names,
+        unordered=True,
+        cache_lines=False,
+        no_output=True,
+    )
+    e = indexer.get()
+    print(e)
 
 
 class Indexer(object):
     def __init__(self, elem, parser, names, unordered=True, show_path=False,
-                 elem_type=None, expand_attr=False, cache_lines=True,
-                 to_open=False, run=False, cmd=False):
+                 elem_type=None, expand_attr=False, cache_lines=False,
+                 no_output=False, to_open=False, run=False, cmd=False):
         self.elem = elem
         self.elem.cache_lines = cache_lines
         self.parser = parser

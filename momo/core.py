@@ -185,37 +185,56 @@ class Node(Element):
         Get elements of this node.
         """
         if self._elems is None:
-            is_dir = False
-            is_file = False
+            this_is_dir = False
+            this_is_file = False
             self._elems = OrderedDict()
             if not isinstance(self.content, dict):
                 raise NodeError('invalid content format')
             for name in self.content:
                 content = self.content[name]
-                is_dict = isinstance(content, dict)
-                if not is_dict:
-                    is_file = True
-                    elem = (
-                        Attribute(name=name,
-                                  bucket=self.bucket,
-                                  parent=self,
-                                  content=content,
-                                  cache_lines=self.cache_lines)
-                    )
-                else:
-                    is_dir = True
-                    elem = Node(name=name,
-                                bucket=self.bucket,
-                                parent=self,
-                                content=content,
-                                cache_lines=self.cache_lines)
+                elem, this_is_dir, this_is_file = self._make_elem(name,
+                                                                  content)
                 self._elems[name] = elem
-            if is_dir is True:
-                self.__class__ = Directory
-            elif is_file is True:
-                self.__class__ = File
+            self._update_class(this_is_dir, this_is_file)
             self._vals = self._elems.values()
         return self._elems
+
+    def _update_class(self, this_is_dir, this_is_file):
+        """Update node's class to Directory or File."""
+        if this_is_dir is True:
+            self.__class__ = Directory
+        elif this_is_file is True:
+            self.__class__ = File
+
+    def _make_elem(self, name, content):
+        """
+        Make a proper element based on the content.
+
+        :return: new child element, whether self should be a file, and whether
+                 self should be a directory.
+        """
+        this_is_dir = False
+        this_is_file = False  # this will always be true
+        is_dict = isinstance(content, dict)
+        if not is_dict:
+            this_is_file = True
+            elem = (
+                Attribute(name=name,
+                          bucket=self.bucket,
+                          parent=self,
+                          content=content,
+                          cache_lines=self.cache_lines,
+                          no_output=self.no_output)
+            )
+        else:
+            this_is_dir = True
+            elem = Node(name=name,
+                        bucket=self.bucket,
+                        parent=self,
+                        content=content,
+                        cache_lines=self.cache_lines,
+                        no_output=self.no_output)
+        return elem, this_is_dir, this_is_file
 
     @property
     def svals(self):
@@ -397,6 +416,19 @@ class Node(Element):
             return None
 
         return sorted(self.vals, key=sort_key)
+
+    def add(self, name, content):
+        """
+        Create an element with name and content and add it to this node.
+        """
+        if name not in self.elems:
+            elem, this_is_dir, this_is_file = self._make_elem(name, content)
+            self._elems[name] = elem
+            self._update_class(this_is_dir, this_is_file)
+            # update vals
+            self._vals = self.elems.values()
+        else:
+            raise NodeError('element %s already exist' % name)
 
 
 class ElemError(Exception):
