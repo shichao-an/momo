@@ -22,10 +22,11 @@ setup(
         'momo.cli': [
             'add = momo.cli:Add',
             'buckets = momo.cli:Buckets',
-            'ls = momo.cli:Ls',
-            'pl = momo.cli:Pl',
             'dump = momo.cli:Dump',
+            'ls = momo.cli:Ls',
+            'pl = momo.cli:Plugin',
             'reload = momo.cli:Reload',
+            'rm = momo.cli:Remove',
             'use = momo.cli:Use',
         ],
     },

@@ -11,6 +11,7 @@ import sys
 ROOT_NODE_NAME = '(root)'
 INDENT_UNIT = '  '
 LINES = []  # cached lines
+PLACEHOLDER = '__placeholder__'
 
 
 @contextmanager
@@ -59,7 +60,6 @@ class Bucket(Base):
 
     @property
     def content(self):
-        print(type(self._content))
         return self._content
 
     def load(self):
@@ -219,8 +219,8 @@ class Node(Element):
         :return: new child element, whether self should be a file, and whether
                  self should be a directory.
         """
-        this_is_dir = False
-        this_is_file = False  # this will always be true
+        this_is_dir = self.is_dir
+        this_is_file = self.is_file
         is_dict = isinstance(content, dict)
         if not is_dict:
             this_is_file = True
@@ -356,7 +356,8 @@ class Node(Element):
             return self.elems[name]
         except KeyError:
             raise ElemError(
-                'element "%s" does not exist in this % ' % (name, self.type))
+                'element "%s" does not exist in this %s' % (
+                    name, self.type.lower()))
 
     def get_elem_by_num(self, num, sort_by, unordered, elem_type):
         vals = self.get_vals(sort_by, unordered, elem_type)
@@ -380,18 +381,17 @@ class Node(Element):
         """
         elems = self.elems
         if elem_type is not None:
-            elems = OrderedDict(self.elems)
+            items = self.elems.items()
             if elem_type not in ('file', 'directory', 'node', 'attribute'):
                 raise NodeError('unknown element type')
             elem_class = getattr(sys.modules[__name__], elem_type.title())
-            for elem in elems:
-                if not isinstance(elems[elem], elem_class):
-                    del elems[elem]
+            items = filter(lambda x: isinstance(x[1], elem_class), items)
+            elems = OrderedDict(items)
         return elems
 
     def get_vals(self, sort_by=None, unordered=False, elem_type=None):
         """
-        The gneric method to get element values.
+        The generic method to get element values.
 
         :param sort_by: the name of the sorting key.  If it is None and
                         `unordered` is False, then the sorting key is the
@@ -437,7 +437,40 @@ class Node(Element):
             self._vals = self.elems.values()
         else:
             raise NodeError(
-                'element "%s" already exists in this %s' % (name, self.type))
+                'element "%s" already exists in this %s' % (
+                    name, self.type.lower()))
+
+    def delete(self, name):
+        """Delete an element with name in this node."""
+        if name in self.elems:
+            this_is_dir, this_is_file = self._delete_elem(name)
+            self._update_class(this_is_dir, this_is_file)
+            # update vals
+            self._vals = self.elems.values()
+        else:
+            raise NodeError(
+                'element "%s" does not exist in this %s' % (
+                    name, self.type.lower()))
+
+    def _delete_elem(self, name):
+        this_is_dir = self.is_dir
+        this_is_file = self.is_file
+
+        del self._elems[name]
+        del self.content[name]
+
+        if not self.content:
+            # add a placeholder to keep this node as a file
+            self.add(PLACEHOLDER, True)
+
+        # check remaining elements
+        for elem in self.elems:
+            if self.elems[elem].is_attr:
+                this_is_file = True
+            if self.elems[elem].is_node:
+                this_is_dir = True
+
+        return this_is_dir, this_is_file
 
 
 class ElemError(Exception):
@@ -539,6 +572,8 @@ class Attribute(Element):
                     self.lines.append(fmt % (indent, num, item))
             elif isinstance(content, (txt_type, bool, int, float)):
                 self.lines.append('%s%s: %s' % (indent, self.name, content))
+            elif content is None:
+                self.lines.append('%s%s: %s' % (indent, self.name, ''))
             else:
                 raise AttrError('unknown type for attribute content')
         finally:

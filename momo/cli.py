@@ -120,14 +120,35 @@ class Add(Command):
         do_add(self.app.bucket, parsed_args, self.parser)
 
 
-class Pl(Command):
+class Remove(Command):
+    """
+    Remove a node or attribute.
+    """
+    def get_parser(self, prog_name):
+        """
+        The parser for sub-command "add".
+        """
+        p = super(Remove, self).get_parser(prog_name)
+        p.add_argument('names', nargs='*', type=utf8_decode,
+                       help='names or numbers to identify element')
+        p.add_argument('-y', '--yes', action='store_true',
+                       help='yes to prompt')
+        # save the parser
+        self.parser = p
+        return p
+
+    def take_action(self, parsed_args):
+        do_remove(self.app.bucket, parsed_args, self.parser)
+
+
+class Plugin(Command):
     """Use plugins."""
 
     def get_parser(self, prog_name):
         """
         The parser for sub-command "pl".
         """
-        p = super(Pl, self).get_parser(prog_name)
+        p = super(Plugin, self).get_parser(prog_name)
         p.add_argument('plugin', help='run a plugin')
         p.add_argument('args', nargs='?', help='positional arguments')
         # save the parser
@@ -253,6 +274,24 @@ def do_add(bucket, args, parser):
     else:
         msg = 'attribute "%s" added' % name
     print('%s to %s "%s"' % (msg, elem.type.lower(), elem))
+
+
+def do_remove(bucket, args, parser):
+    root = bucket.root
+    root.cache_lines = True
+    indexer = Indexer(
+        elem=root,
+        parser=parser,
+        names=args.names,
+        unordered=True,
+        cache_lines=False,
+        no_output=True,
+    )
+    elem = indexer.get()
+    parent = elem.parent
+    parent.delete(elem.name)
+    print('%s "%s" removed from %s "%s"' % (
+          elem.type.lower(), elem, parent.type.lower(), parent))
 
 
 def _parse_contents(content, parser):

@@ -39,4 +39,4 @@ class BucketDocument(Document):
                                         default_flow_style=False,
                                         indent=INDENT,
                                         block_seq_indent=BLOCK_SEQ_INDENT,
-                                        width=WIDTH)
+                                        width=WIDTH, tags=None)
