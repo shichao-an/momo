@@ -9,7 +9,7 @@ from cliff.commandmanager import CommandManager
 from momo import plugins
 from momo.backends import OrderedDict
 from momo.settings import settings
-from momo.utils import utf8_decode, page_lines
+from momo.utils import utf8_decode, page_lines, eval_path
 import momo.core
 
 
@@ -155,6 +155,29 @@ class Add(Command):
 
     def take_action(self, parsed_args):
         do_add(self.app.bucket, parsed_args, self.parser)
+
+
+class AddPath(Command):
+    """
+    Shortcut to add a path.
+    """
+    def get_parser(self, prog_name):
+        """
+        The parser for sub-command "add".
+        """
+        p = super(AddPath, self).get_parser(prog_name)
+        p.add_argument('names', nargs='*', type=utf8_decode,
+                       help='names or numbers to identify element')
+        p.add_argument('-p', '--path', type=utf8_decode, required=True,
+                       help='path to add')
+        p.add_argument('-n', '--name', type=utf8_decode,
+                       help='name of the node')
+        # save the parser
+        self.parser = p
+        return p
+
+    def take_action(self, parsed_args):
+        do_add_path(self.app.bucket, parsed_args, self.parser)
 
 
 class Remove(Command):
@@ -311,6 +334,25 @@ def do_add(bucket, args, parser):
     else:
         msg = 'attribute "%s" added' % name
     print('%s to %s "%s"' % (msg, elem.type.lower(), elem))
+
+
+def do_add_path(bucket, args, parser):
+    root = bucket.root
+    root.cache_lines = True
+    indexer = Indexer(
+        elem=root,
+        parser=parser,
+        names=args.names,
+        unordered=True,
+        cache_lines=False,
+        no_output=True,
+    )
+    elem = indexer.get()
+    path = eval_path(args.path)
+    name = args.name or os.path.basename(path)
+    content = OrderedDict([('path', path)])
+    elem.add(name, content)
+    print('file "%s" added to %s "%s"' % (name, elem.type.lower(), elem))
 
 
 def do_remove(bucket, args, parser):

@@ -21,6 +21,7 @@ setup(
         ],
         'momo.cli': [
             'add = momo.cli:Add',
+            'addpath = momo.cli:AddPath',
             'buckets = momo.cli:Buckets',
             'dump = momo.cli:Dump',
             'cd = momo.cli:Chdir',
