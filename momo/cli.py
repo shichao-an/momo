@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, absolute_import
 import logging
+import os
 import sys
 from cliff.app import App
 from cliff.command import Command
@@ -66,6 +67,42 @@ class MomoCliApp(App):
             self.bucket = settings.bucket
 
 
+class External(Command):
+    """
+    Run external shell commands.
+    """
+    def get_parser(self, prog_name):
+        """
+        The parser for sub-command "e".
+        """
+        p = super(External, self).get_parser(prog_name)
+        p.add_argument('cmd', help='external command')
+        # save the parser
+        self.parser = p
+        return p
+
+    def take_action(self, parsed_args):
+        os.system(parsed_args.cmd)
+
+
+class Chdir(Command):
+    """
+    Change directory.
+    """
+    def get_parser(self, prog_name):
+        """
+        The parser for sub-command "e".
+        """
+        p = super(Chdir, self).get_parser(prog_name)
+        p.add_argument('directory', help='target directory')
+        # save the parser
+        self.parser = p
+        return p
+
+    def take_action(self, parsed_args):
+        os.chdir(parsed_args.directory)
+
+
 class Ls(Command):
     """List elements."""
 
@@ -108,10 +145,10 @@ class Add(Command):
         p = super(Add, self).get_parser(prog_name)
         p.add_argument('names', nargs='*', type=utf8_decode,
                        help='names or numbers to identify element')
-        p.add_argument('-n', '--name',
+        p.add_argument('-n', '--name', type=utf8_decode,
                        help='name of the element to add')
         p.add_argument('-c', '--content', action='append', required=True,
-                       help='contents')
+                       type=utf8_decode, help='contents')
         # save the parser
         self.parser = p
         return p

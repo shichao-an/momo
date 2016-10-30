@@ -341,7 +341,7 @@ class Node(Element):
             width = len(str(len(vals)))
             fmt = '%s%{}d [%s] %s'.format(width)
             for num, elem in enumerate(vals, start=1):
-                self.lines.append(fmt % (indent, num, elem.type[0], elem))
+                self.lines.append(fmt % (indent, num, elem.type[0], elem.name))
         finally:
             self.flush_lines()
 

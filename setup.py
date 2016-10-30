@@ -23,6 +23,8 @@ setup(
             'add = momo.cli:Add',
             'buckets = momo.cli:Buckets',
             'dump = momo.cli:Dump',
+            'cd = momo.cli:Chdir',
+            'e = momo.cli:External',
             'ls = momo.cli:Ls',
             'pl = momo.cli:Plugin',
             'reload = momo.cli:Reload',

@@ -6,19 +6,33 @@ from momo.utils import run_cmd, mkdir_p, utf8_encode, txt_type
 from momo.plugins.base import Plugin
 
 
+BASE_CONFIG_NAME = '__base__'
+
+
 class Mkdocs(Plugin):
     mkdocs_configs = {
         'theme': 'readthedocs',
     }
     momo_configs = {
+        'momo_root_name': 'Home',
         'momo_page_level': 1,
         'momo_attr_table': True,
         'momo_attr_css': True,
     }
 
     def setup(self):
-        configs = self.settings.plugins.get('mkdocs', {})
-        self.mkdocs_configs['site_name'] = self.settings.bucket.name
+        self.root = self.settings.bucket.root
+        bucket_name = self.settings.bucket.name
+        base_configs = self.settings.plugins.get(
+            'mkdocs', {}).get(BASE_CONFIG_NAME, {})
+        configs = self.settings.plugins.get(
+            'mkdocs', {}).get(bucket_name, {})
+        for k in base_configs:
+            if k not in configs:
+                configs[k] = base_configs[k]
+
+        # mkdocs site_name defaults to bucket name
+        self.mkdocs_configs['site_name'] = bucket_name
 
         for k in configs:
             if not k.startswith('momo_'):
@@ -30,7 +44,7 @@ class Mkdocs(Plugin):
         self.mkdocs_root_dir = os.path.join(self.settings.settings_dir,
                                             'mkdocs')
         self.mkdocs_dir = os.path.join(self.mkdocs_root_dir,
-                                       self.settings.bucket.name)
+                                       bucket_name)
         self.docs_dir = os.path.join(self.mkdocs_dir, 'docs')
         self.site_dir = os.path.join(self.mkdocs_dir, 'site')
         if os.path.exists(self.docs_dir):
@@ -42,6 +56,8 @@ class Mkdocs(Plugin):
             filename = os.path.basename(asset)
             if filename not in set(['docs', 'site', 'mkdocs.yml']):
                 os.symlink(asset, os.path.join(self.docs_dir, filename))
+
+        self.root.name = self.momo_configs['momo_root_name']
 
     def _get_pages(self, root, level=0):
         if level == self.momo_configs['momo_page_level']:
@@ -211,7 +227,7 @@ class Mkdocs(Plugin):
         run_cmd(cmd=cmd, cmd_args=cmd_args)
 
     def run(self, args=None):
-        pages = self._get_pages(self.settings.bucket.root)
+        pages = self._get_pages(self.root)
         self.mkdocs_configs['pages'] = pages
         self._make_mkdocs_yml()
         self._serve(args)

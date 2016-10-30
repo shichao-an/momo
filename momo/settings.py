@@ -1,5 +1,5 @@
 from momo import backends
-from momo.core import Bucket
+from momo.core import Bucket, PLACEHOLDER
 from momo.utils import eval_path, mkdir_p
 import os
 import yaml
@@ -77,11 +77,14 @@ class Settings(object):
         return DEFULT_BUCKET_PATH
 
     def _create_default_bucket_path(self):
-        default_buckets_dir = os.path.dirname(DEFULT_BUCKET_PATH)
-        mkdir_p(default_buckets_dir)
-        if not os.path.exists(DEFULT_BUCKET_PATH):
-            with open(DEFULT_BUCKET_PATH, 'w') as f:
-                f.write('home:\n    path: %s' % eval_path('~'))
+        self._create_empty_bucket(DEFULT_BUCKET_PATH)
+
+    def _create_empty_bucket(self, path):
+        dirname = os.path.dirname(path)
+        mkdir_p(dirname)
+        if not os.path.exists(path):
+            with open(path, 'w') as f:
+                f.write('%s: true' % PLACEHOLDER)
 
     @property
     def buckets(self):
@@ -118,7 +121,10 @@ class Settings(object):
         name = self.cbn
         if name not in self.buckets:
             raise SettingsError('bucket "%s" does not exist' % name)
-        return self.to_bucket(name, self.buckets[name])
+        path = self.buckets[name]
+        if not os.path.exists(path):
+            self._create_empty_bucket(path)
+        return self.to_bucket(name, path)
 
     @property
     def backend(self):
