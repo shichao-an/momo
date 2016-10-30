@@ -80,8 +80,8 @@ class Settings(object):
         default_buckets_dir = os.path.dirname(DEFULT_BUCKET_PATH)
         mkdir_p(default_buckets_dir)
         if not os.path.exists(DEFULT_BUCKET_PATH):
-            with open(DEFULT_BUCKET_PATH, 'w'):
-                pass
+            with open(DEFULT_BUCKET_PATH, 'w') as f:
+                f.write('home:\n    path: %s' % eval_path('~'))
 
     @property
     def buckets(self):

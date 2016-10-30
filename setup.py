@@ -24,6 +24,7 @@ setup(
             'buckets = momo.cli:Buckets',
             'ls = momo.cli:Ls',
             'pl = momo.cli:Pl',
+            'dump = momo.cli:Dump',
             'reload = momo.cli:Reload',
             'use = momo.cli:Use',
         ],

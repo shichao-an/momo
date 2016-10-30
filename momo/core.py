@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from operator import attrgetter
 from momo.utils import txt_type, PY3, utf8_decode
 from momo.actions import NodeAction, AttributeAction
-from collections import OrderedDict
+from momo.backends import OrderedDict
 import sys
 
 
@@ -59,13 +59,14 @@ class Bucket(Base):
 
     @property
     def content(self):
+        print(type(self._content))
         return self._content
 
     def load(self):
         self._content = self.document.load()
 
-    def save(self):
-        self.document.dump(self._contents.to_dict())
+    def dump(self):
+        self.document.dump(self.content)
 
     @property
     def root(self):
@@ -428,6 +429,7 @@ class Node(Element):
         Create an element with name and content and add it to this node.
         """
         if name not in self.elems:
+            self.content[name] = content
             elem, this_is_dir, this_is_file = self._make_elem(name, content)
             self._elems[name] = elem
             self._update_class(this_is_dir, this_is_file)

@@ -35,6 +35,8 @@ class BucketDocument(Document):
         Dump the content to the bucket file.
         """
         with open(self.path, 'w') as f:
-            ruamel.yaml.round_trip_dump(content, f, indent=INDENT,
+            ruamel.yaml.round_trip_dump(content, f,
+                                        default_flow_style=False,
+                                        indent=INDENT,
                                         block_seq_indent=BLOCK_SEQ_INDENT,
                                         width=WIDTH)

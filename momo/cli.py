@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, absolute_import
-import collections
 import logging
 import sys
 from cliff.app import App
 from cliff.command import Command
 from cliff.commandmanager import CommandManager
 from momo import plugins
+from momo.backends import OrderedDict
 from momo.settings import settings
 from momo.utils import utf8_decode, page_lines
 import momo.core
@@ -159,7 +159,7 @@ class Reload(Command):
     """Reload current bucket from path."""
     def get_parser(self, prog_name):
         """
-        The parser for sub-command "use".
+        The parser for sub-command "reload".
         """
         p = super(Reload, self).get_parser(prog_name)
         # save the parser
@@ -174,7 +174,7 @@ class Buckets(Command):
     """Show available buckets."""
     def get_parser(self, prog_name):
         """
-        The parser for sub-command "use".
+        The parser for sub-command "buckets".
         """
         p = super(Buckets, self).get_parser(prog_name)
         # save the parser
@@ -184,6 +184,22 @@ class Buckets(Command):
     def take_action(self, parsed_args):
         for name, path in settings.buckets.items():
             print('%s: %s' % (name, path))
+
+
+class Dump(Command):
+    """Write the current bucket to disk."""
+    def get_parser(self, prog_name):
+        """
+        The parser for sub-command "save".
+        """
+        p = super(Dump, self).get_parser(prog_name)
+        # save the parser
+        self.parser = p
+        return p
+
+    def take_action(self, parsed_args):
+        self.app.bucket.dump()
+        print('bucket "%s" has been saved.' % self.app.cbn)
 
 
 def do_ls(bucket, args, parser):
@@ -232,7 +248,7 @@ def do_add(bucket, args, parser):
         elem.add(contents)
     if isinstance(contents, list):
         msg = 'list-type attribute "%s" added' % name
-    elif isinstance(contents, collections.OrderedDict):
+    elif isinstance(contents, OrderedDict):
         msg = 'node "%s" added' % name
     else:
         msg = 'attribute "%s" added' % name
@@ -254,7 +270,7 @@ def _parse_contents(content, parser):
                     'with attribute-type contents')
             is_node = True
             if res is None:
-                res = collections.OrderedDict()
+                res = OrderedDict()
             outs = map(lambda x: x.strip(), outs)
             key, value = outs
             if key not in res:
