@@ -20,9 +20,10 @@ setup(
             'momo = momo.cli:main',
         ],
         'momo.cli': [
+            'add = momo.cli:Add',
             'ls = momo.cli:Ls',
             'pl = momo.cli:Pl',
-            'add = momo.cli:Add',
+            'use = momo.cli:Use',
         ],
     },
     classifiers=[

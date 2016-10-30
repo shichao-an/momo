@@ -92,9 +92,12 @@ class Ls(Command):
 
 
 class Add(Command):
+    """
+    Add a node or attribute.
+    """
     def get_parser(self, prog_name):
         """
-        The parser for sub-command "ls".
+        The parser for sub-command "add".
         """
         p = super(Add, self).get_parser(prog_name)
         p.add_argument('names', nargs='*', type=utf8_decode,
@@ -123,6 +126,24 @@ class Pl(Command):
 
     def take_action(self, parsed_args):
         do_pl(parsed_args.plugin, parsed_args.args)
+
+
+class Use(Command):
+    """Use a bucket."""
+    def get_parser(self, prog_name):
+        """
+        The parser for sub-command "use".
+        """
+        p = super(Use, self).get_parser(prog_name)
+        p.add_argument('bucket', help='bucket name')
+
+        # save the parser
+        self.parser = p
+        return p
+
+    def take_action(self, parsed_args):
+        settings.cbn = parsed_args.bucket
+        self.app.bucket = settings.bucket
 
 
 def do_ls(bucket, args, parser):
@@ -160,6 +181,18 @@ def do_add(bucket, args, parser):
     )
     e = indexer.get()
     print(e)
+
+
+def do_pl(plugin, args):
+    """
+    :param plugin: plugin's name.
+    :param extra_args: extra positional arguments to the plugin program.
+    """
+    plugin = getattr(plugins, plugin).plugin
+    plugin.setup()
+    if args is not None:
+        args = args.split()
+    plugin.run(args=args)
 
 
 class Indexer(object):
@@ -202,41 +235,28 @@ class Indexer(object):
         if elem.is_attr and elem.is_item:
             if names:
                 self.parser.error('too many names or numbers')
-        if ls_action(self.to_open, self.run, self.cmd, action):
+        if self._ls_action(action):
             elem.ls(show_path=self.show_path, elem_type=self.elem_type,
                     unordered=self.unordered, expand_attr=self.expand_attr)
 
-
-def do_pl(plugin, args):
-    """
-    :param plugin: plugin's name.
-    :param extra_args: extra positional arguments to the plugin program.
-    """
-    plugin = getattr(plugins, plugin).plugin
-    plugin.setup()
-    if args is not None:
-        args = args.split()
-    plugin.run(args=args)
-
-
-def ls_action(to_open, run, cmd, action):
-    if to_open:
-        action.open()
-    elif run is not None:
-        if run is False:
-            action.run()
-        else:
-            action.run(cmd=run)
-    elif cmd is not None:
-        if cmd is False:
-            if action.elem.is_attr and action.elem.is_item:
-                action.cmd()
+    def _ls_action(self, action):
+        if self.to_open:
+            action.open()
+        elif self.run is not None:
+            if self.run is False:
+                action.run()
             else:
-                action.cmds()
+                action.run(cmd=self.run)
+        elif self.cmd is not None:
+            if self.cmd is False:
+                if action.elem.is_attr and action.elem.is_item:
+                    action.cmd()
+                else:
+                    action.cmds()
+            else:
+                action.cmd(num=self.cmd)
         else:
-            action.cmd(num=cmd)
-    else:
-        return True
+            return True
 
 
 def main(argv=sys.argv[1:]):
