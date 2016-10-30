@@ -154,6 +154,11 @@ class Element(Base):
     def ls(self, *args, **kwargs):
         raise NotImplementedError
 
+    @property
+    def type(self):
+        """Return type of the element as a string."""
+        return self.__class__.__name__
+
     def __unicode__(self):
         return txt_type(self.name)
 
@@ -333,9 +338,9 @@ class Node(Element):
                 indent = INDENT_UNIT * self.level
             vals = self.get_vals(sort_by, unordered, elem_type)
             width = len(str(len(vals)))
-            fmt = '%s%{}d %s'.format(width)
+            fmt = '%s%{}d [%s] %s'.format(width)
             for num, elem in enumerate(vals, start=1):
-                self.lines.append(fmt % (indent, num, elem))
+                self.lines.append(fmt % (indent, num, elem.type[0], elem))
         finally:
             self.flush_lines()
 
@@ -349,7 +354,8 @@ class Node(Element):
         try:
             return self.elems[name]
         except KeyError:
-            raise ElemError('element %s does not exist' % name)
+            raise ElemError(
+                'element "%s" does not exist in this % ' % (name, self.type))
 
     def get_elem_by_num(self, num, sort_by, unordered, elem_type):
         vals = self.get_vals(sort_by, unordered, elem_type)
@@ -428,7 +434,8 @@ class Node(Element):
             # update vals
             self._vals = self.elems.values()
         else:
-            raise NodeError('element %s already exist' % name)
+            raise NodeError(
+                'element "%s" already exists in this %s' % (name, self.type))
 
 
 class ElemError(Exception):
@@ -528,9 +535,18 @@ class Attribute(Element):
                 fmt = '%s%{}d %s'.format(width)
                 for num, item in enumerate(content, start=1):
                     self.lines.append(fmt % (indent, num, item))
-            elif isinstance(content, (txt_type, bool)):
+            elif isinstance(content, (txt_type, bool, int, float)):
                 self.lines.append('%s%s: %s' % (indent, self.name, content))
             else:
                 raise AttrError('unknown type for attribute content')
         finally:
             self.flush_lines()
+
+    def add(self, content):
+        if not self.has_items:
+            raise AttrError(
+                'cannot add contents to non-list-type attribute')
+        if isinstance(content, dict):
+            raise AttrError(
+                'cannot add dict-type content to list-type attribute')
+        self.content.append(content)

@@ -105,7 +105,7 @@ class Settings(object):
     @property
     def bucket(self):
         """
-        Get the current bucket.
+        Load the bucket (named self.cbn) from path.
         """
         name = self.cbn
         if name not in self.buckets:

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, absolute_import
+import collections
 import logging
 import sys
 from cliff.app import App
@@ -102,6 +103,10 @@ class Add(Command):
         p = super(Add, self).get_parser(prog_name)
         p.add_argument('names', nargs='*', type=utf8_decode,
                        help='names or numbers to identify element')
+        p.add_argument('-n', '--name', required=True,
+                       help='name of the element to add')
+        p.add_argument('-c', '--content', action='append', required=True,
+                       help='contents')
         # save the parser
         self.parser = p
         return p
@@ -147,11 +152,11 @@ class Use(Command):
 
 
 def do_ls(bucket, args, parser):
-    elem = bucket.root
-    elem.cache_lines = True
+    root = bucket.root
+    root.cache_lines = True
     with momo.core.lines() as lines:
         indexer = Indexer(
-            elem=elem,
+            elem=root,
             parser=parser,
             names=args.names,
             unordered=True,
@@ -169,18 +174,66 @@ def do_ls(bucket, args, parser):
 
 
 def do_add(bucket, args, parser):
-    elem = bucket.root
-    elem.cache_lines = True
+    root = bucket.root
+    root.cache_lines = True
     indexer = Indexer(
-        elem=elem,
+        elem=root,
         parser=parser,
         names=args.names,
         unordered=True,
         cache_lines=False,
         no_output=True,
     )
-    e = indexer.get()
-    print(e)
+    elem = indexer.get()
+    name = args.name
+    contents = _parse_contents(args.content, parser)
+    elem.add(name, contents)
+    if isinstance(contents, list):
+        msg = 'list-type attribute "%s" added' % name
+    elif isinstance(contents, collections.OrderedDict):
+        msg = 'node "%s" added' % name
+    else:
+        msg = 'attribute "%s" added' % name
+    print('%s to %s "%s"' % (msg, elem.type.lower(), elem))
+
+
+def _parse_contents(content, parser):
+    is_attr = False
+    is_node = False
+    res = None
+    for c in content:
+        if ':' in c:
+            outs = c.split(':')
+            if len(outs) != 2:
+                parser.error('incorrect format for content "%s"' % c)
+            if is_attr:
+                parser.error(
+                    'cannot mix node-type contents '
+                    'with attribute-type contents')
+            is_node = True
+            if res is None:
+                res = collections.OrderedDict()
+            outs = map(lambda x: x.strip(), outs)
+            key, value = outs
+            if key not in res:
+                res[key] = value
+            else:
+                parser.error(
+                    'duplicate name "%s" for node-type content' % key)
+        else:
+            if is_node:
+                parser.error(
+                    'cannot mix node-type contents '
+                    'with attribute-type contents')
+            is_attr = True
+            if res is None:
+                res = []
+            res.append(c)
+
+    if isinstance(res, list):
+        if len(res) == 1:
+            res = res[0]
+    return res
 
 
 def do_pl(plugin, args):
