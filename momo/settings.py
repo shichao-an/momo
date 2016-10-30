@@ -1,6 +1,6 @@
 from momo import backends
 from momo.core import Bucket
-from momo.utils import eval_path
+from momo.utils import eval_path, mkdir_p
 import os
 import yaml
 
@@ -8,7 +8,7 @@ import yaml
 ENV_SETTINGS_DIR = 'MOMO_SETTINGS_DIR'
 ENV_SETTINGS_FILE = 'MOMO_SETTINGS_FILE'
 ENV_DEFAULT_BUCKET = 'MOMO_DEFAULT_BUCKET'
-
+DEFULT_BUCKET_PATH = eval_path('~/.momo/buckets/default.yml')
 DEFAULT_SETTINGS_DIR = eval_path('~/.momo')
 DEFAULT_SETTINGS_FILE = os.path.join(DEFAULT_SETTINGS_DIR, 'settings.yml')
 BUCKET_FILE_TYPES = {
@@ -73,14 +73,22 @@ class Settings(object):
             path = os.path.join(eval_path('~'), '.momo' + ft)
             if os.path.exists(path):
                 return path
-        raise SettingsError('default bucket is not found')
+        self._create_default_bucket_path()
+        return DEFULT_BUCKET_PATH
+
+    def _create_default_bucket_path(self):
+        default_buckets_dir = os.path.dirname(DEFULT_BUCKET_PATH)
+        mkdir_p(default_buckets_dir)
+        if not os.path.exists(DEFULT_BUCKET_PATH):
+            with open(DEFULT_BUCKET_PATH, 'w'):
+                pass
 
     @property
     def buckets(self):
         """
         Get all buckets as a dictionary of names to paths.
 
-        :return: a dictionary of buckets
+        :return: a dictionary of buckets.
 
         """
         if self._settings is not None:

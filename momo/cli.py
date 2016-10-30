@@ -18,9 +18,9 @@ class MomoCliApp(App):
             description='momo cli',
             version='0.1.0',
             command_manager=CommandManager('momo.cli'),
-            deferred_help=True,
             )
         self.bucket = None
+        self.cbn = None
 
     def configure_logging(self):
         """Create logging handlers for any log output.
@@ -57,8 +57,13 @@ class MomoCliApp(App):
         return parser
 
     def initialize_app(self, argv):
-        settings.cbn = self.options.bucket  # set bucket name
-        self.bucket = settings.bucket
+        self.use_bucket(self.options.bucket)
+
+    def use_bucket(self, bucket_name):
+        settings.cbn = bucket_name
+        if self.cbn != bucket_name:  # only load bucket from path if changed
+            self.cbn = bucket_name
+            self.bucket = settings.bucket
 
 
 class Ls(Command):
@@ -103,7 +108,7 @@ class Add(Command):
         p = super(Add, self).get_parser(prog_name)
         p.add_argument('names', nargs='*', type=utf8_decode,
                        help='names or numbers to identify element')
-        p.add_argument('-n', '--name', required=True,
+        p.add_argument('-n', '--name',
                        help='name of the element to add')
         p.add_argument('-c', '--content', action='append', required=True,
                        help='contents')
@@ -147,8 +152,38 @@ class Use(Command):
         return p
 
     def take_action(self, parsed_args):
-        settings.cbn = parsed_args.bucket
+        self.app.use_bucket(parsed_args.bucket)
+
+
+class Reload(Command):
+    """Reload current bucket from path."""
+    def get_parser(self, prog_name):
+        """
+        The parser for sub-command "use".
+        """
+        p = super(Reload, self).get_parser(prog_name)
+        # save the parser
+        self.parser = p
+        return p
+
+    def take_action(self, parsed_args):
         self.app.bucket = settings.bucket
+
+
+class Buckets(Command):
+    """Show available buckets."""
+    def get_parser(self, prog_name):
+        """
+        The parser for sub-command "use".
+        """
+        p = super(Buckets, self).get_parser(prog_name)
+        # save the parser
+        self.parser = p
+        return p
+
+    def take_action(self, parsed_args):
+        for name, path in settings.buckets.items():
+            print('%s: %s' % (name, path))
 
 
 def do_ls(bucket, args, parser):
@@ -187,7 +222,14 @@ def do_add(bucket, args, parser):
     elem = indexer.get()
     name = args.name
     contents = _parse_contents(args.content, parser)
-    elem.add(name, contents)
+    if not elem.is_attr:
+        if name is None:
+            parser.error(
+                'argument -n/--name is required for adding elements to nodes '
+                'and non-list-type attributes')
+        elem.add(name, contents)
+    else:
+        elem.add(contents)
     if isinstance(contents, list):
         msg = 'list-type attribute "%s" added' % name
     elif isinstance(contents, collections.OrderedDict):
