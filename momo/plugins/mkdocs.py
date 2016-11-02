@@ -2,7 +2,7 @@ import os
 import shutil
 import yaml
 import glob
-from momo.utils import run_cmd, mkdir_p, utf8_encode, txt_type
+from momo.utils import run_cmd, mkdir_p, utf8_encode, txt_type, eval_path
 from momo.plugins.base import Plugin
 
 
@@ -18,6 +18,8 @@ class Mkdocs(Plugin):
         'momo_page_level': 1,
         'momo_attr_table': True,
         'momo_attr_css': True,
+        'momo_docs_dir': None,
+        'momo_docs_pathname': 'docs',
     }
 
     def setup(self):
@@ -72,6 +74,27 @@ class Mkdocs(Plugin):
                 for elem in root.node_svals
             ]
             return pages
+
+    def _get_docs(self):
+        if self.momo_configs['momo_docs_dir'] is None:
+            return []
+        src_momo_docs_dir = eval_path(self.momo_configs['momo_docs_dir'])
+        if os.path.isdir(src_momo_docs_dir):
+            markdown_paths = glob.glob(
+                os.path.join(src_momo_docs_dir, '*.md'))
+            momo_docs_dir = os.path.join(
+                self.docs_dir, self.momo_configs['momo_docs_pathname'])
+            mkdir_p(momo_docs_dir)
+            docs = []
+            for markdown_path in markdown_paths:
+                shutil.copy(markdown_path, momo_docs_dir)
+                markdown_basename = os.path.basename(markdown_path)
+                doc_title = os.path.splitext(markdown_basename)[0]
+                doc_path = os.path.join(
+                    self.momo_configs['momo_docs_pathname'], markdown_basename
+                )
+                docs.append({doc_title: doc_path})
+            return [{'Docs': docs}]
 
     def _make_page(self, elem):
         res = '%s.md' % os.path.join(*elem.path)
@@ -228,7 +251,8 @@ class Mkdocs(Plugin):
 
     def run(self, args=None):
         pages = self._get_pages(self.root)
-        self.mkdocs_configs['pages'] = pages
+        docs = self._get_docs()
+        self.mkdocs_configs['pages'] = pages + docs
         self._make_mkdocs_yml()
         self._serve(args)
 
