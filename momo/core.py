@@ -8,10 +8,23 @@ from momo.backends import OrderedDict
 import sys
 
 
-ROOT_NODE_NAME = '(root)'
 INDENT_UNIT = '  '
 LINES = []  # cached lines
+ROOT_NODE_NAME = '(root)'
 PLACEHOLDER = '__placeholder__'
+
+
+# Runtime configurations
+class Configs(object):
+    CONFIGS = {}
+
+    def __getattr__(self, name):
+        return self.CONFIGS[name]
+
+    def __setattr__(self, name, value):
+        self.CONFIGS[name] = value
+
+configs = Configs()
 
 
 @contextmanager
@@ -89,8 +102,7 @@ class Element(Base):
     """
     The Element class.
     """
-    def __init__(self, name, bucket, parent, content, cache_lines=False,
-                 no_output=False):
+    def __init__(self, name, bucket, parent, content):
         """
         :param cache_lines: whether to cache lines to the global LINES
                             variable.
@@ -100,8 +112,6 @@ class Element(Base):
         self.bucket = bucket
         self.parent = parent
         self.content = content
-        self.cache_lines = cache_lines
-        self.no_output = no_output
         self._lines = []
         if parent is None:
             self.path = []
@@ -112,7 +122,7 @@ class Element(Base):
 
     @property
     def lines(self):
-        if self.cache_lines:
+        if configs.cache_lines:
             return LINES
         else:
             return self._lines
@@ -120,7 +130,7 @@ class Element(Base):
     def flush_lines(self):
         if self._lines:
             with lines(self._lines) as _lines:
-                if not self.no_output:
+                if not configs.no_output:
                     print('\n'.join(_lines))
 
     @property
@@ -228,18 +238,14 @@ class Node(Element):
                 Attribute(name=name,
                           bucket=self.bucket,
                           parent=self,
-                          content=content,
-                          cache_lines=self.cache_lines,
-                          no_output=self.no_output)
+                          content=content)
             )
         else:
             this_is_dir = True
             elem = Node(name=name,
                         bucket=self.bucket,
                         parent=self,
-                        content=content,
-                        cache_lines=self.cache_lines,
-                        no_output=self.no_output)
+                        content=content)
         return elem, this_is_dir, this_is_file
 
     @property
@@ -341,7 +347,11 @@ class Node(Element):
             width = len(str(len(vals)))
             fmt = '%s%{}d [%s] %s'.format(width)
             for num, elem in enumerate(vals, start=1):
-                self.lines.append(fmt % (indent, num, elem.type[0], elem.name))
+                if not configs.short_output:
+                    self.lines.append(
+                        fmt % (indent, num, elem.type[0], elem.name))
+                else:
+                    self.lines.append(elem.name)
         finally:
             self.flush_lines()
 
@@ -535,8 +545,11 @@ class Attribute(Element):
             if expand_attr:
                 content = self.parent.action.expand_attr(self.name)
             val = content[name_or_num - 1]
-            self.lines.append(
-                '%s%s[%d]: %s' % (indent, self.name, name_or_num, val))
+            if not configs.short_output:
+                self.lines.append(
+                    '%s%s[%d]: %s' % (indent, self.name, name_or_num, val))
+            else:
+                self.lines.append(val)
             self._index = name_or_num
             return self
         finally:
@@ -564,16 +577,25 @@ class Attribute(Element):
             if expand_attr:
                 content = self.parent.action.expand_attr(self.name)
             if self.has_items:
-                self.lines.append('%s%s:' % (indent, self.name))
+                if not configs.short_output:
+                    self.lines.append('%s%s:' % (indent, self.name))
                 indent += INDENT_UNIT
                 width = len(str(len(content)))
                 fmt = '%s%{}d %s'.format(width)
                 for num, item in enumerate(content, start=1):
-                    self.lines.append(fmt % (indent, num, item))
+                    if not configs.short_output:
+                        self.lines.append(fmt % (indent, num, item))
+                    else:
+                        self.lines.append(item)
             elif isinstance(content, (txt_type, bool, int, float)):
-                self.lines.append('%s%s: %s' % (indent, self.name, content))
+                if not configs.short_output:
+                    self.lines.append(
+                        '%s%s: %s' % (indent, self.name, content))
+                else:
+                    self.lines.append(content)
             elif content is None:
-                self.lines.append('%s%s: %s' % (indent, self.name, ''))
+                if not configs.short_output:
+                    self.lines.append('%s%s: %s' % (indent, self.name, ''))
             else:
                 raise AttrError('unknown type for attribute content')
         finally:

@@ -100,4 +100,4 @@ def page_lines(lines):
     if len(lines) >= MIN_PAGE_LINES:
         pydoc.pager(text)
     else:
-        print(text)
+        print(utf8_encode(text))

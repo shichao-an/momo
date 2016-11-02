@@ -1,6 +1,6 @@
 from momo import backends
-from momo.core import Bucket, PLACEHOLDER
 from momo.utils import eval_path, mkdir_p
+from momo.core import PLACEHOLDER, Bucket
 import os
 import yaml
 
@@ -151,7 +151,6 @@ class Settings(object):
         if res is None:
             raise SettingsError('"%s" setting is not found' % name)
         return res
-
 
 settings = Settings()
 settings.load()

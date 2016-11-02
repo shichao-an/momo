@@ -8,6 +8,7 @@ from cliff.command import Command
 from cliff.commandmanager import CommandManager
 from momo import plugins
 from momo.backends import OrderedDict
+from momo.core import configs
 from momo.settings import settings
 from momo.utils import utf8_decode, page_lines, eval_path
 import momo.core
@@ -113,6 +114,8 @@ class Ls(Command):
         p = super(Ls, self).get_parser(prog_name)
         p.add_argument('names', nargs='*', type=utf8_decode,
                        help='names or numbers to identify element')
+        p.add_argument('-s', '--short', action='store_true',
+                       help='show only names')
         p.add_argument('-p', '--path', action='store_true',
                        help='show full path')
         p.add_argument('-o', '--open', action='store_true',
@@ -297,6 +300,7 @@ def do_ls(bucket, args, parser):
             expand_attr=args.expand,
             cache_lines=True,
             no_output=False,
+            short_output=args.short,
             to_open=args.open,
             run=args.run,
             cmd=args.cmd,
@@ -427,9 +431,12 @@ def do_pl(plugin, args):
 class Indexer(object):
     def __init__(self, elem, parser, names, unordered=True, show_path=False,
                  elem_type=None, expand_attr=False, cache_lines=False,
-                 no_output=False, to_open=False, run=False, cmd=False):
+                 no_output=False, short_output=False, to_open=False, run=False,
+                 cmd=False):
         self.elem = elem
-        self.elem.cache_lines = cache_lines
+        configs.cache_lines = cache_lines
+        configs.no_output = no_output
+        configs.short_output = short_output
         self.parser = parser
         self.names = names
         self.unordered = unordered
