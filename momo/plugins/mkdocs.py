@@ -89,7 +89,7 @@ class Mkdocs(Plugin):
             for markdown_path in markdown_paths:
                 shutil.copy(markdown_path, momo_docs_dir)
                 markdown_basename = os.path.basename(markdown_path)
-                doc_title = os.path.splitext(markdown_basename)[0]
+                doc_title = os.path.splitext(markdown_basename)[0].title()
                 doc_path = os.path.join(
                     self.momo_configs['momo_docs_pathname'], markdown_basename
                 )
