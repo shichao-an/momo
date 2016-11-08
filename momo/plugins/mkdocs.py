@@ -96,17 +96,34 @@ class Mkdocs(Plugin):
                 docs.append({doc_title: doc_path})
             return [{'Docs': docs}]
 
+    def _get_lazy_load_size(self, elem):
+        attr = elem.attrs.get('momo_lazy_load_size')
+        lazy_load_size = attr.content if attr is not None else None
+        if lazy_load_size is not None:
+            # parse size in WIDTHxHEIGHT format (px)
+            try:
+                width, height = map(int, lazy_load_size.split('x'))
+            except ValueError:
+                Exception(
+                    'Invalid "momo_lazy_load_size" value %s' % lazy_load_size)
+            return (width, height)
+        return lazy_load_size
+
     def _make_page(self, elem):
         res = '%s.md' % os.path.join(*elem.path)
         filename = os.path.join(self.docs_dir, res)
         dirname = os.path.dirname(filename)
         if dirname:
             mkdir_p(dirname)
+        kwargs = {}
+        lazy_load_size = self._get_lazy_load_size(elem)
+        if lazy_load_size is not None:
+            kwargs['lazy_load_size'] = lazy_load_size
         buf = []
         with open(filename, 'w') as f:
             buf.append(self._make_title(elem))
             buf.append(self._make_attrs(elem))
-            buf.append(self._make_nodes(elem))
+            buf.append(self._make_nodes(elem, **kwargs))
             f.write(utf8_encode('\n'.join(buf)))
         return res
 
@@ -117,18 +134,23 @@ class Mkdocs(Plugin):
         dirname = os.path.dirname(filename)
         if dirname:
             mkdir_p(dirname)
+        kwargs = {}
+        lazy_load_size = self._get_lazy_load_size(elem)
+        if lazy_load_size is not None:
+            kwargs['lazy_load_size'] = lazy_load_size
         buf = []
         with open(filename, 'w') as f:
             buf.append(self._make_title(elem))
             buf.append(self._make_attrs(elem))
-            buf.append(self._make_nodes(elem, index=True, level=level))
+            buf.append(self._make_nodes(elem, index=True, level=level,
+                                        **kwargs))
             f.write(utf8_encode('\n'.join(buf)))
         return res
 
     def _make_title(self, elem):
         return '# %s' % elem.name
 
-    def _make_attrs(self, elem):
+    def _make_attrs(self, elem, **kwargs):
         buf = []
         if self.momo_configs['momo_attr_css']:
             name_fmt = ('<span class="momo-attr-name '
@@ -151,7 +173,7 @@ class Mkdocs(Plugin):
                 buf.append(
                     txt_type(name_fmt + ' | ' + content_fmt).format(
                         name=attr.name,
-                        content=self._make_attr_content(attr).strip()
+                        content=self._make_attr_content(attr, **kwargs).strip()
                     )
                 )
             buf.append('')
@@ -159,26 +181,27 @@ class Mkdocs(Plugin):
             for attr in elem.attr_svals:
                 buf.append('\n')
                 buf.append(
-                    '- %s:%s' % (attr.name, self._make_attr_content(attr)))
+                    '- %s:%s' % (attr.name,
+                                 self._make_attr_content(attr, **kwargs)))
                 buf.append(
                     txt_type('- ' + name_fmt + ':' + content_fmt).format(
                         name=attr.name,
-                        content=self._make_attr_content(attr).strip()
+                        content=self._make_attr_content(attr, **kwargs).strip()
                     )
                 )
         return '\n'.join(buf)
 
-    def _make_attr_content(self, attr):
+    def _make_attr_content(self, attr, **kwargs):
         buf = []
         if attr.has_items:
             buf.append('\n')
             for i, item in enumerate(attr.content, start=1):
                 if self.momo_configs['momo_attr_table']:
-                    buf.append(self._make_link(item))
+                    buf.append(self._make_link(item, **kwargs))
                 else:
-                    buf.append('    - %s' % (self._make_link(item)))
+                    buf.append('    - %s' % (self._make_link(item, **kwargs)))
         else:
-            buf.append(' %s' % self._make_object(attr))
+            buf.append(' %s' % self._make_object(attr, **kwargs))
         if self.momo_configs['momo_attr_table']:
             if buf and buf[0] == '\n':
                 buf.pop(0)
@@ -186,34 +209,47 @@ class Mkdocs(Plugin):
         else:
             return '\n'.join(buf)
 
-    def _make_object(self, attr):
+    def _make_object(self, attr, **kwargs):
         name = attr.name
         content = attr.content
         if name.lower() in ('url', 'link'):
-            return self._make_link(content)
+            return self._make_link(content, **kwargs)
         elif name.lower() in ('image'):
-            return self._make_image(content)
+            return self._make_image(content, **kwargs)
         else:
-            return self._make_link(content)
+            return self._make_link(content, **kwargs)
         return content
 
-    def _make_link(self, content):
+    def _make_link(self, content, **kwargs):
         if isinstance(content, txt_type) and content.startswith('http'):
             content = '[%s](%s)' % (content, content)
         return content
 
-    def _make_image(self, content):
+    def _make_image(self, content, **kwargs):
         res = '\n\n'
         if isinstance(content, txt_type) and content.startswith('http'):
-            res += '[![image]({image})]({image} "image")'.format(image=content)
+            if 'lazy_load_size' in kwargs:
+                width, height = kwargs['lazy_load_size']
+                img = (
+                    '<a href="{image}" title="image">'
+                    '<img class="lazy" '
+                    'data-original="{image}" '
+                    'width="{width}px" '
+                    'height="{height}px" '
+                    '/></a>'
+                ).format(image=content, width=width, height=height)
+                res += img
+            else:
+                res += '[![image]({image})]({image} "image")'.format(
+                    image=content)
         return res
 
-    def _make_nodes(self, elem, index=False, level=None):
+    def _make_nodes(self, elem, index=False, level=None, **kwargs):
         buf = []
         if not index:
             for node in elem.node_svals:
                 buf.append('## %s' % (node.name))
-                buf.append(self._make_attrs(node))
+                buf.append(self._make_attrs(node, **kwargs))
         else:
             buf.append('### Nodes')
             for node in elem.node_svals:
@@ -228,16 +264,6 @@ class Mkdocs(Plugin):
         with open(mkdocs_yml, 'w') as f:
             yaml.dump(self.mkdocs_configs, f, default_flow_style=False,
                       allow_unicode=True)
-
-    def _make_home_page(self):
-        res = 'index.md'
-        filename = os.path.join(self.docs_dir, res)
-        buf = []
-        buf.append('# Home')
-        buf.append('Welcome to momo!')
-        with open(filename, 'w') as f:
-            f.write('\n'.join(buf))
-        return res
 
     def _serve(self, args=None):
         os.chdir(self.mkdocs_dir)
