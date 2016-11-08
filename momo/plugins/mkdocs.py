@@ -20,6 +20,7 @@ class Mkdocs(Plugin):
         'momo_attr_css': True,
         'momo_docs_dir': None,
         'momo_docs_pathname': 'docs',
+        'momo_control_attr': False,  # whether rendering control attriutes
     }
 
     def setup(self):
@@ -97,6 +98,7 @@ class Mkdocs(Plugin):
             return [{'Docs': docs}]
 
     def _get_lazy_load_size(self, elem):
+        """Get lazy load size for attributes of the current element's nodes."""
         attr = elem.attrs.get('momo_lazy_load_size')
         lazy_load_size = attr.content if attr is not None else None
         if lazy_load_size is not None:
@@ -109,6 +111,21 @@ class Mkdocs(Plugin):
             return (width, height)
         return lazy_load_size
 
+    def _get_this_lazy_load_size(self, elem):
+        """Get lazy load size for current element's attributes."""
+        attr = elem.attrs.get('momo_this_lazy_load_size')
+        this_lazy_load_size = attr.content if attr is not None else None
+        if this_lazy_load_size is not None:
+            # parse size in WIDTHxHEIGHT format (px)
+            try:
+                width, height = map(int, this_lazy_load_size.split('x'))
+            except ValueError:
+                Exception(
+                    'Invalid "momo_this_lazy_load_size" value %s' %
+                    this_lazy_load_size)
+            return (width, height)
+        return this_lazy_load_size
+
     def _make_page(self, elem):
         res = '%s.md' % os.path.join(*elem.path)
         filename = os.path.join(self.docs_dir, res)
@@ -116,13 +133,17 @@ class Mkdocs(Plugin):
         if dirname:
             mkdir_p(dirname)
         kwargs = {}
+        this_kwargs = {}
         lazy_load_size = self._get_lazy_load_size(elem)
+        this_lazy_load_size = self._get_this_lazy_load_size(elem)
         if lazy_load_size is not None:
             kwargs['lazy_load_size'] = lazy_load_size
+        if this_lazy_load_size is not None:
+            this_kwargs['lazy_load_size'] = this_lazy_load_size
         buf = []
         with open(filename, 'w') as f:
             buf.append(self._make_title(elem))
-            buf.append(self._make_attrs(elem))
+            buf.append(self._make_attrs(elem, **this_kwargs))
             buf.append(self._make_nodes(elem, **kwargs))
             f.write(utf8_encode('\n'.join(buf)))
         return res
@@ -150,6 +171,11 @@ class Mkdocs(Plugin):
     def _make_title(self, elem):
         return '# %s' % elem.name
 
+    def _filter_control_attrs(self, attrs):
+        if not self.momo_configs['momo_control_attr']:
+            return filter(lambda x: not x.name.startswith('momo_'), attrs)
+        return attrs
+
     def _make_attrs(self, elem, **kwargs):
         buf = []
         if self.momo_configs['momo_attr_css']:
@@ -169,7 +195,7 @@ class Mkdocs(Plugin):
                 buf.append('')
                 buf.append('|')
                 buf.append('- | -')
-            for attr in elem.attr_svals:
+            for attr in self._filter_control_attrs(elem.attr_svals):
                 buf.append(
                     txt_type(name_fmt + ' | ' + content_fmt).format(
                         name=attr.name,
@@ -178,7 +204,7 @@ class Mkdocs(Plugin):
                 )
             buf.append('')
         else:
-            for attr in elem.attr_svals:
+            for attr in self._filter_control_attrs(elem.attr_svals):
                 buf.append('\n')
                 buf.append(
                     '- %s:%s' % (attr.name,
@@ -248,8 +274,12 @@ class Mkdocs(Plugin):
         buf = []
         if not index:
             for node in elem.node_svals:
+                this_kwargs = dict(kwargs)  # get a fresh copy for each node
                 buf.append('## %s' % (node.name))
-                buf.append(self._make_attrs(node, **kwargs))
+                this_lazy_load_size = self._get_this_lazy_load_size(node)
+                if this_lazy_load_size is not None:
+                    this_kwargs['lazy_load_size'] = this_lazy_load_size
+                buf.append(self._make_attrs(node, **this_kwargs))
         else:
             buf.append('### Nodes')
             for node in elem.node_svals:
