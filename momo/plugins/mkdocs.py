@@ -99,7 +99,7 @@ class Mkdocs(Plugin):
 
     def _get_lazy_load_size(self, elem):
         """Get lazy load size for attributes of the current element's nodes."""
-        attr = elem.attrs.get('momo_lazy_load_size')
+        attr = elem.attrs.get('__lazy_load_size')
         lazy_load_size = attr.content if attr is not None else None
         if lazy_load_size is not None:
             # parse size in WIDTHxHEIGHT format (px)
@@ -107,13 +107,13 @@ class Mkdocs(Plugin):
                 width, height = map(int, lazy_load_size.split('x'))
             except ValueError:
                 Exception(
-                    'Invalid "momo_lazy_load_size" value %s' % lazy_load_size)
+                    'Invalid "__lazy_load_size" value %s' % lazy_load_size)
             return (width, height)
         return lazy_load_size
 
     def _get_this_lazy_load_size(self, elem):
         """Get lazy load size for current element's attributes."""
-        attr = elem.attrs.get('momo_this_lazy_load_size')
+        attr = elem.attrs.get('__this_lazy_load_size')
         this_lazy_load_size = attr.content if attr is not None else None
         if this_lazy_load_size is not None:
             # parse size in WIDTHxHEIGHT format (px)
@@ -121,7 +121,7 @@ class Mkdocs(Plugin):
                 width, height = map(int, this_lazy_load_size.split('x'))
             except ValueError:
                 Exception(
-                    'Invalid "momo_this_lazy_load_size" value %s' %
+                    'Invalid "__this_lazy_load_size" value %s' %
                     this_lazy_load_size)
             return (width, height)
         return this_lazy_load_size
@@ -173,7 +173,7 @@ class Mkdocs(Plugin):
 
     def _filter_control_attrs(self, attrs):
         if not self.momo_configs['momo_control_attr']:
-            return filter(lambda x: not x.name.startswith('momo_'), attrs)
+            return filter(lambda x: not x.name.startswith('__'), attrs)
         return attrs
 
     def _make_attrs(self, elem, **kwargs):
