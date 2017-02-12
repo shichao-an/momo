@@ -1,0 +1,29 @@
+{% extends "bootstrap/base.html" %}
+
+{% block styles %}
+{{super()}}
+{% include "styles.html" %}
+{% endblock %}
+
+{% block body_attribs %}
+{% include "body_attribs.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="col-md-3" role="toc">
+    {% include "toc.html" %}
+  </div>
+  <div class="col-md-9" role="main">
+    {% block main %}
+      <h2 class="main-title" data-toc-text="{{ title }}">{{ title }}</h2>
+      {% include "base_content.html" %}
+    {% endblock %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{super()}}
+{% include "scripts.html" %}
+{% endblock %}

@@ -1,11 +1,20 @@
 import os
 import jinja2
 from momo.plugins.base import Plugin
-from momo.plugins.flask.app import app, FLASK_TEMPLATE_FOLDER
+from momo.plugins.flask.app import (
+    app,
+    FLASK_TEMPLATE_FOLDER,
+    FLASK_DEFAULT_HOST,
+    FLASK_DEFAULT_PORT,
+    FLASK_DEFAULT_DEBUG
+)
 
-FLASK_DEFAULT_HOST = '127.0.0.1'
-FLASK_DEFAULT_PORT = '7000'
-FLASK_DEFAULT_DEBUG = True
+"""
+Configuration Values Passed to app.config:
+
+MOMO_FILES_FOLDER: user files folder.
+MOMO_SITENAME: sitename (defaults to bucket name).
+"""
 
 
 class Flask(Plugin):
@@ -17,8 +26,11 @@ class Flask(Plugin):
             self.settings.settings_dir, 'flask', bucket_name)
         template_folder = os.path.join(flask_dir, 'templates')
         self._reset_loader(template_folder)
-        # user files folder
+
+        # configuration values
         app.config['MOMO_FILES_FOLDER'] = os.path.join(flask_dir, 'files')
+        app.config['MOMO_SITENAME'] = (
+            self.configs.get('sitename') or bucket_name.capitalize())
 
     def _reset_loader(self, template_folder):
         """Add user-defined template folder."""

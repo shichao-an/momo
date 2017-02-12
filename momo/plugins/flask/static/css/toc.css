@@ -1,0 +1,21 @@
+nav[data-toggle='toc'] {
+  margin-top: 30px;
+}
+
+nav.affix[data-toggle='toc'] {
+  position: static;
+}
+
+/* don't expand nested items, which pushes down the rest of the page when navigating */
+nav[data-toggle='toc'] .nav .active .nav {
+  display: none;
+}
+
+nav[data-toggle=toc] .nav>li>a {
+  font-size: 14px;
+  line-height: 2em;
+}
+
+h2.main-title {
+  font-size: 36px;
+}

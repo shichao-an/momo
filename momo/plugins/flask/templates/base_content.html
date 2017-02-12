@@ -1,0 +1,6 @@
+{% for node in nodes %}
+<h2 data-toc-text="{{ node.name }}" id="{{ node.name | slugify }}">{{ node.name }}</h2>
+<div style="height:300px">
+  dummy
+</div>
+{% endfor %}
