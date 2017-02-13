@@ -1,10 +1,9 @@
 import os
 
-
 from flask import Flask, send_from_directory, render_template, g
 from flask_bootstrap import Bootstrap
-from momo.settings import settings
 from momo.plugins.flask import filters, functions
+from momo.plugins.flask.nodes import process_node
 from momo.plugins.flask.utils import get_public_functions
 
 
@@ -34,17 +33,13 @@ app.jinja_env.filters.update(get_public_functions(filters))
 app.jinja_env.globals.update(get_public_functions(functions))
 
 
-def get_root_node():
-    return settings.bucket.root
-
-
 @app.route('/node/<path:path>')
 def node(path):
-    nodes = []
-    return render_template('node.html', nodes=nodes)
+    node = process_node(app.config['MOMO_ROOT_NODE'])
+    return render_template('node.html', node=node)
 
 
-@app.route('/search')
+@app.route('/search/')
 def search():
     nodes = []
     return render_template('search.html', nodes=nodes)
@@ -52,8 +47,11 @@ def search():
 
 @app.route('/')
 def index():
-    """Default index page that lists child nodes of root."""
-    g.nodes = settings.bucket.root.node_vals
+    """
+    Default index page that lists all nodes of root, deemed as a special
+    case for /node/.
+    """
+    g.nodes = app.config['MOMO_ROOT_NODE'].node_vals
     return render_template('base.html')
 
 

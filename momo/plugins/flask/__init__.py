@@ -12,7 +12,7 @@ from momo.plugins.flask.app import (
 from momo.plugins.flask.utils import get_public_functions
 
 """
-Configuration Values Passed to app.config:
+app.config values of the current bucket:
 
 MOMO_FILES_FOLDER: user files folder.
 MOMO_SITENAME: sitename (defaults to bucket name).
@@ -20,6 +20,8 @@ MOMO_HEADER_ID: what to show in the header id attribute of the node, which can
                 be false (do not show id, default), slug (slugify the header
                 text), true (use the header text, which may break the
                 javascripts if containing invalid characters).
+MOMO_ROOT_NODE: the root node of the current bucket.
+MOMO_TOC_TITLE: whether to include main title in the TOC (defaults to true).
 """
 
 
@@ -39,7 +41,9 @@ class Flask(Plugin):
         app.config['MOMO_FILES_FOLDER'] = os.path.join(flask_dir, 'files')
         app.config['MOMO_SITENAME'] = (
             self.configs.get('sitename') or bucket_name.capitalize())
-        app.config['MOMO_HEADER_ID'] = self.configs.get('header_id')
+        app.config['MOMO_HEADER_ID'] = self.configs.get('header_id', False)
+        app.config['MOMO_ROOT_NODE'] = self.settings.bucket.root
+        app.config['MOMO_TOC_TITLE'] = self.configs.get('toc_title', True)
 
         # load and register user-defined filter and global functions
         filters_f = os.path.join(flask_dir, 'filters.py')

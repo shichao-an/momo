@@ -9,7 +9,7 @@ from slugify import slugify as _slugify
 
 def slugify(s):
     """Slugify a string."""
-    _slugify(s)
+    return _slugify(s)
 
 
 def image(node):

@@ -1,5 +1,4 @@
 {% extends "bootstrap/base.html" %}
-{# template for index view function #}
 
 {% block styles %}
 {{super()}}
@@ -10,6 +9,10 @@
 {% include "body_attribs.html" %}
 {% endblock %}
 
+{% block navbar %}
+{% include "navbar.html" %}
+{% endblock %}
+
 {% block content %}
 <div class="container">
   <div class="col-md-3" role="toc">
@@ -17,7 +20,11 @@
   </div>
   <div class="col-md-9" role="main">
     {% block main %}
-      <h2 class="main-title" data-toc-text="{{ config.MOMO_SITENAME }}">{{ config.MOMO_SITENAME }}</h2>
+      {% if config.MOMO_TOC_TITLE %}
+        <h2 class="main-title" data-toc-text="{{ config.MOMO_SITENAME }}">{{ config.MOMO_SITENAME }}</h2>
+      {% else %}
+        <h1 data-toc-text="{{ config.MOMO_SITENAME }}">{{ config.MOMO_SITENAME }}</h1>
+      {% endif %}
       {% include "base_content.html" %}
     {% endblock %}
   </div>
