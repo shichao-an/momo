@@ -1,9 +1,9 @@
 import os
-import re
-import unicodedata
-from flask import Flask, send_from_directory, render_template
+
+from flask import Flask, send_from_directory, render_template, g
 from flask_bootstrap import Bootstrap
 from momo.settings import settings
+from slugify import slugify
 
 
 FLASK_DEFAULT_HOST = '127.0.0.1'
@@ -22,20 +22,11 @@ app = Flask(
 # instrument app
 Bootstrap(app)
 app.jinja_env.add_extension('jinja2.ext.do')
+app.jinja_env.filters['slugify'] = slugify
 
 
 def get_root_node():
     return settings.bucket.root
-
-
-# filters
-@app.template_filter('slugify')
-def slugify(s):
-    s = unicode(s)
-    separator = '-'
-    s = unicodedata.normalize('NFKD', s).encode('ascii', 'ignore')
-    s = re.sub('[^\w\s-]', '', s.decode('ascii')).strip().lower()
-    return re.sub('[%s\s]+' % separator, separator, s)
 
 
 @app.route('/node/<path:path>')
@@ -52,9 +43,9 @@ def search():
 
 @app.route('/')
 def index():
-    nodes = get_root_node().node_vals
-    return render_template(
-        'base.html', nodes=nodes, title=app.config['MOMO_SITENAME'])
+    """Default index page that lists child nodes of root."""
+    g.nodes = settings.bucket.root.node_vals
+    return render_template('base.html')
 
 
 @app.route('/files/<path:filename>')

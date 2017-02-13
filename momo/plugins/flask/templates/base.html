@@ -16,7 +16,7 @@
   </div>
   <div class="col-md-9" role="main">
     {% block main %}
-      <h2 class="main-title" data-toc-text="{{ title }}">{{ title }}</h2>
+      <h2 class="main-title" data-toc-text="{{ config.MOMO_SITENAME }}">{{ config.MOMO_SITENAME }}</h2>
       {% include "base_content.html" %}
     {% endblock %}
   </div>

@@ -1,5 +1,5 @@
-{% for node in nodes %}
-<h2 data-toc-text="{{ node.name }}" id="{{ node.name | slugify }}">{{ node.name }}</h2>
+{% for node in g.nodes %}
+{% include "node_header.html" %}
 <div style="height:300px">
   dummy
 </div>

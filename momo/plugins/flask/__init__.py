@@ -14,6 +14,10 @@ Configuration Values Passed to app.config:
 
 MOMO_FILES_FOLDER: user files folder.
 MOMO_SITENAME: sitename (defaults to bucket name).
+MOMO_HEADER_ID: what to show in the header id attribute of the node, which can
+                be false (do not show id, default), slug (slugify the header
+                text), true (use the header text, which may break the
+                javascripts if containing invalid characters).
 """
 
 
@@ -24,6 +28,7 @@ class Flask(Plugin):
             'flask', {}).get(bucket_name, {})
         flask_dir = os.path.join(
             self.settings.settings_dir, 'flask', bucket_name)
+
         template_folder = os.path.join(flask_dir, 'templates')
         self._reset_loader(template_folder)
 
@@ -31,6 +36,7 @@ class Flask(Plugin):
         app.config['MOMO_FILES_FOLDER'] = os.path.join(flask_dir, 'files')
         app.config['MOMO_SITENAME'] = (
             self.configs.get('sitename') or bucket_name.capitalize())
+        app.config['MOMO_HEADER_ID'] = self.configs.get('header_id')
 
     def _reset_loader(self, template_folder):
         """Add user-defined template folder."""

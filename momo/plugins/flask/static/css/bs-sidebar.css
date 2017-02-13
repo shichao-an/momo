@@ -14,6 +14,11 @@
     padding: 0;
 }
 
+.bs-sidebar {
+  overflow-y: auto;
+  max-height: 100vh;
+}
+
 /* First level of nav */
 .bs-sidenav {
     margin-top: 30px;
