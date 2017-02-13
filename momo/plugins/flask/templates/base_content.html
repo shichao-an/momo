@@ -1,6 +1,6 @@
 {% for node in g.nodes %}
 {% include "node_header.html" %}
-<div style="height:300px">
-  dummy
+<div>
+  <img src="{{ node | image }}">
 </div>
 {% endfor %}

@@ -1,3 +1,4 @@
+import imp
 import os
 import jinja2
 from momo.plugins.base import Plugin
@@ -8,6 +9,7 @@ from momo.plugins.flask.app import (
     FLASK_DEFAULT_PORT,
     FLASK_DEFAULT_DEBUG
 )
+from momo.plugins.flask.utils import get_public_functions
 
 """
 Configuration Values Passed to app.config:
@@ -29,8 +31,9 @@ class Flask(Plugin):
         flask_dir = os.path.join(
             self.settings.settings_dir, 'flask', bucket_name)
 
-        template_folder = os.path.join(flask_dir, 'templates')
-        self._reset_loader(template_folder)
+        # register user template folder
+        user_template_folder = os.path.join(flask_dir, 'templates')
+        self._reset_loader(user_template_folder)
 
         # configuration values
         app.config['MOMO_FILES_FOLDER'] = os.path.join(flask_dir, 'files')
@@ -38,10 +41,24 @@ class Flask(Plugin):
             self.configs.get('sitename') or bucket_name.capitalize())
         app.config['MOMO_HEADER_ID'] = self.configs.get('header_id')
 
-    def _reset_loader(self, template_folder):
+        # load and register user-defined filter and global functions
+        filters_f = os.path.join(flask_dir, 'filters.py')
+        functions_f = os.path.join(flask_dir, 'functions.py')
+        if os.path.isfile(filters_f):
+            filters = imp.load_source('filters', filters_f)
+            get_public_functions(filters)
+            app.jinja_env.filters.update(get_public_functions(filters))
+
+        # register default global functions
+        if os.path.isfile(functions_f):
+            functions = imp.load_source('functions', functions_f)
+            get_public_functions(filters)
+            app.jinja_env.globals.update(get_public_functions(functions))
+
+    def _reset_loader(self, user_template_folder):
         """Add user-defined template folder."""
         app.jinja_loader = jinja2.FileSystemLoader([
-            template_folder,
+            user_template_folder,
             FLASK_TEMPLATE_FOLDER,
         ])
 

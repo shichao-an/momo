@@ -1,9 +1,11 @@
 import os
 
+
 from flask import Flask, send_from_directory, render_template, g
 from flask_bootstrap import Bootstrap
 from momo.settings import settings
-from slugify import slugify
+from momo.plugins.flask import filters, functions
+from momo.plugins.flask.utils import get_public_functions
 
 
 FLASK_DEFAULT_HOST = '127.0.0.1'
@@ -21,8 +23,15 @@ app = Flask(
 
 # instrument app
 Bootstrap(app)
+
+# extensions
 app.jinja_env.add_extension('jinja2.ext.do')
-app.jinja_env.filters['slugify'] = slugify
+
+# register default filters
+app.jinja_env.filters.update(get_public_functions(filters))
+
+# register default global functions
+app.jinja_env.globals.update(get_public_functions(functions))
 
 
 def get_root_node():
