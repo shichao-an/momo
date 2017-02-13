@@ -19,5 +19,5 @@ def process_search(root, request):
 def node_from_path(path, root):
     node = root
     for name in path.split('/'):
-        node = root.elems[name]
+        node = node.elems[name]
     return node

@@ -21,11 +21,7 @@
     {% include "toc.html" %}
   </div>
   <div class="col-md-9" role="main">
-    {% if config.MOMO_TOC_TITLE %}
-    <h2 class="main-title" data-toc-text="{{ g.title }}">{{ g.title }}</h2>
-    {% else %}
-      <h1>Index</h1>
-    {% endif %}
+    {% include "main_title.html" %}
     {% block main %}
       {% include "base_content.html" %}
     {% endblock %}
