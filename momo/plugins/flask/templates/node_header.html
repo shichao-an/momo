@@ -5,5 +5,5 @@
   id="{{ node.name }}"
 {% endif %}
 >
-{{ node.name }}
+<a href="/node/{{ node | node_to_path }}/">{{ node.name }}</a>
 </h2>

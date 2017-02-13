@@ -1,7 +1,5 @@
-{% for node in g.nodes %}
-{% include "node_header.html" %}
-<div>
-  <img src="{{ node | image }}">
-  {{ node.elems }}
-</div>
-{% endfor %}
+{% if config.MOMO_INDEX_TABLE %}
+  {% include "index_table.html" %}
+{% else %}
+  {% include "index_list.html" %}
+{% endif %}

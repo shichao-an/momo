@@ -1,0 +1,15 @@
+{% for node in g.nodes %}
+  {% include "node_header.html" %}
+  <div>
+    <img src="{{ node | attr_image }}">
+  </div>
+  <br/>
+  <div>
+    <ul>
+    {% for attr in node.attr_vals %}
+      <li>{{ attr.name }} = {{ attr.content }}</li>
+    {% endfor %}
+    </ul>
+  </div>
+{% endfor %}
+

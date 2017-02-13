@@ -1,6 +1,13 @@
 import os
 
-from flask import Flask, send_from_directory, render_template, g
+from flask import (
+    Flask,
+    g,
+    redirect,
+    render_template,
+    request,
+    send_from_directory,
+)
 from flask_bootstrap import Bootstrap
 from momo.plugins.flask import filters, functions
 from momo.plugins.flask.nodes import process_node
@@ -32,15 +39,22 @@ app.jinja_env.filters.update(get_public_functions(filters))
 # register default global functions
 app.jinja_env.globals.update(get_public_functions(functions))
 
+app.url_map.strict_slashes = False
 
+
+@app.route('/node')
 @app.route('/node/<path:path>')
-def node(path):
-    node = process_node(app.config['MOMO_ROOT_NODE'])
+def node(path=None):
+    g.title = path
+    if path is None:
+        return redirect('/')
+    node = process_node(path, app.config['MOMO_ROOT_NODE'], request)
     return render_template('node.html', node=node)
 
 
-@app.route('/search/')
+@app.route('/search')
 def search():
+    g.title = 'Search'
     nodes = []
     return render_template('search.html', nodes=nodes)
 
@@ -51,6 +65,7 @@ def index():
     Default index page that lists all nodes of root, deemed as a special
     case for /node/.
     """
+    g.title = 'Index'
     g.nodes = app.config['MOMO_ROOT_NODE'].node_vals
     return render_template('index.html')
 
@@ -59,3 +74,14 @@ def index():
 def files(filename):
     """Get user files."""
     return send_from_directory(app.config['MOMO_FILES_FOLDER'], filename)
+
+
+@app.before_request
+def fix_trailing():
+    """Always add a single trailing slash."""
+    rp = request.path
+    if rp != '/':
+        if not rp.endswith('/'):
+            return redirect(rp + '/')
+        elif rp.endswith('//'):
+            return redirect(rp.rstrip('/') + '/')

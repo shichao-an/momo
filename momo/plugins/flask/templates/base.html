@@ -22,7 +22,7 @@
   </div>
   <div class="col-md-9" role="main">
     {% if config.MOMO_TOC_TITLE %}
-      <h2 class="main-title" data-toc-text="index">Index</h2>
+    <h2 class="main-title" data-toc-text="{{ g.title }}">{{ g.title }}</h2>
     {% else %}
       <h1>Index</h1>
     {% endif %}

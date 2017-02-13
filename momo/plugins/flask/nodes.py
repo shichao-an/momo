@@ -5,7 +5,7 @@ def process_node(path, root, request):
     """
     Function to process requests for node view.
     """
-    node = node_from_path(root)
+    node = node_from_path(path, root)
     return node
 
 
