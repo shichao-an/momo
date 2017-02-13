@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 {# template for index view function #}
+
+{% block title %}{{ config.MOMO_SITENAME }}{% endblock %}
+
+
 {% block main %}
   {% include "index_content.html" %}
 {% endblock %}

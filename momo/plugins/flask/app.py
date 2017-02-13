@@ -52,7 +52,7 @@ def index():
     case for /node/.
     """
     g.nodes = app.config['MOMO_ROOT_NODE'].node_vals
-    return render_template('base.html')
+    return render_template('index.html')
 
 
 @app.route('/files/<path:filename>')

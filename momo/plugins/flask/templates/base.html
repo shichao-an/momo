@@ -1,5 +1,7 @@
 {% extends "bootstrap/base.html" %}
 
+{% block title %}{{ g.title }} - {{ config.MOMO_SITENAME }}{% endblock %}
+
 {% block styles %}
 {{super()}}
 {% include "styles.html" %}
@@ -19,12 +21,12 @@
     {% include "toc.html" %}
   </div>
   <div class="col-md-9" role="main">
+    {% if config.MOMO_TOC_TITLE %}
+      <h2 class="main-title" data-toc-text="index">Index</h2>
+    {% else %}
+      <h1>Index</h1>
+    {% endif %}
     {% block main %}
-      {% if config.MOMO_TOC_TITLE %}
-        <h2 class="main-title" data-toc-text="{{ config.MOMO_SITENAME }}">{{ config.MOMO_SITENAME }}</h2>
-      {% else %}
-        <h1 data-toc-text="{{ config.MOMO_SITENAME }}">{{ config.MOMO_SITENAME }}</h1>
-      {% endif %}
       {% include "base_content.html" %}
     {% endblock %}
   </div>
