@@ -3,9 +3,6 @@
 # http://jinja.pocoo.org/docs/2.9/templates/#builtin-filters
 
 from slugify import slugify as _slugify
-import re
-from jinja2 import Markup
-from momo.utils import bin_type, txt_type
 
 
 def get_attr(node, attrname, default=None):
@@ -13,13 +10,6 @@ def get_attr(node, attrname, default=None):
     if attrname in node.attrs:
         return node.attrs[attrname].content
     return default
-
-
-def linkify(value, regex='^https?:'):
-    if isinstance(value, (txt_type, bin_type)):
-        if re.match(regex, value):
-            return Markup('<a href="{value}">{value}</a>'.format(value=value))
-    return value
 
 
 def slugify(s):
