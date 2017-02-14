@@ -22,6 +22,8 @@ MOMO_HEADER_ID: what to show in the header id attribute of the node, which can
                 javascripts if containing invalid characters).
 MOMO_ROOT_NODE: the root node of the current bucket.
 MOMO_TOC_TITLE: whether to include main title in the TOC (defaults to true).
+MOMO_INDEX_TABLE: whether to use table format in the index page (defaults to
+                  false)
 """
 
 
@@ -44,6 +46,7 @@ class Flask(Plugin):
         app.config['MOMO_HEADER_ID'] = self.configs.get('header_id', False)
         app.config['MOMO_ROOT_NODE'] = self.settings.bucket.root
         app.config['MOMO_TOC_TITLE'] = self.configs.get('toc_title', True)
+        app.config['MOMO_INDEX_TABLE'] = self.configs.get('index_table', False)
 
         # load and register user-defined filter and global functions
         filters_f = os.path.join(flask_dir, 'filters.py')

@@ -1,4 +1,17 @@
-{% include "attr_table.html" %}
+{# attribute table #}
+<div>
+  <img src="{{ node | attr_image }}">
+</div>
+<br/>
+<div>
+  <ul>
+  {% for attr in node.attr_vals %}
+    <li>{{ attr.name }} = {{ attr.content }}</li>
+  {% endfor %}
+  </ul>
+</div>
+
+{# node list #}
 {% for node in node.node_vals %}
   {% include "node_header.html" %}
   <div>

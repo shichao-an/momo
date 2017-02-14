@@ -56,6 +56,7 @@ def node(path=None):
 @app.route('/search')
 def search():
     g.title = 'Search'
+    g.active_page = 'search'
     nodes = []
     return render_template('search.html', nodes=nodes)
 
@@ -67,6 +68,7 @@ def index():
     case for /node/.
     """
     g.title = 'Index'
+    g.active_page = 'index'
     g.nodes = app.config['MOMO_ROOT_NODE'].node_vals
     return render_template('index.html')
 
