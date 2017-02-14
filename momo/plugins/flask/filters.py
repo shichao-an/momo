@@ -2,9 +2,24 @@
 # make sure not to conflict with built-ins:
 # http://jinja.pocoo.org/docs/2.9/templates/#builtin-filters
 
-
-from momo.plugins.flask.functions import get_attr as _get_attr
 from slugify import slugify as _slugify
+import re
+from jinja2 import Markup
+from momo.utils import bin_type, txt_type
+
+
+def get_attr(node, attrname, default=None):
+    """Get content of a node's attr. If attr is not present, return default."""
+    if attrname in node.attrs:
+        return node.attrs[attrname].content
+    return default
+
+
+def linkify(value, regex='^https?:'):
+    if isinstance(value, (txt_type, bin_type)):
+        if re.match(regex, value):
+            return Markup('<a href="{value}">{value}</a>'.format(value=value))
+    return value
 
 
 def slugify(s):
@@ -13,13 +28,13 @@ def slugify(s):
 
 
 def attr_image(node):
-    """Get image attr."""
-    return _get_attr(node, 'image')
+    """Shortcut to get_attr(node, 'image')."""
+    return get_attr(node, 'image')
 
 
 def attr_path(node):
-    """Get path attr."""
-    return _get_attr(node, 'path')
+    """Shortcut to get_attr(node, 'path')."""
+    return get_attr(node, 'path')
 
 
 def node_to_path(node):

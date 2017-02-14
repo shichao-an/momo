@@ -45,10 +45,10 @@ app.url_map.strict_slashes = False
 @app.route('/node')
 @app.route('/node/<path:path>')
 def node(path=None):
-    g.path = path
-    g.title = os.path.basename(path)
     if path is None:
         return redirect('/')
+    g.path = path
+    g.title = os.path.basename(path)
     node = process_node(path, app.config['MOMO_ROOT_NODE'], request)
     return render_template('node.html', node=node)
 

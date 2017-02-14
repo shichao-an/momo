@@ -1,0 +1,8 @@
+{# default attr row #}
+<tr>
+  <td class="momo-attr-name">{{ attr.name }}</td>
+  <td class="momo-attr-content">
+    {% set template = 'attrcontent_' + attr.name + '.html' %}
+    {% include [template, 'attrcontent.html'] %}
+  </td>
+</tr>
