@@ -70,13 +70,7 @@ def index():
     """
     g.title = 'Index'
     g.active_page = 'index'
-
-    nodes = app.config['MOMO_ROOT_NODE'].node_vals
-    page = request.args.get('page', type=int, default=1)
-    per_page = app.config['MOMO_PAGINATION_INDEX_PER_PAGE']
-    g.nodes = nodes[per_page * (page - 1):per_page * page]
-    g.pagination = paginate(
-        page=page, total=len(nodes), per_page=per_page, config=app.config)
+    g.nodes = app.config['MOMO_ROOT_NODE'].node_vals
 
     return render_template('index.html')
 

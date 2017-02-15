@@ -11,9 +11,10 @@ It first lists attributes of this node, then iterates over its child nodes.
 
 {% set page = get_page(request) %}
 {% set per_page = config['MOMO_PAGINATION_NODE_PER_PAGE'] %}
+{% set total = node.node_vals|length %}
 {% set pagination = paginate(
     page=page,
-    total=node.node_vals|length,
+    total=total,
     per_page=per_page,
     config=config)
 %}
