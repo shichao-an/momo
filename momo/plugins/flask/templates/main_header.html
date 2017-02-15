@@ -3,8 +3,8 @@
 Header shown in the main content body.
 
 #}
-{% if config.MOMO_TOC_TITLE %}
-  <h2 class="main-title" data-toc-text="{{ g.title }}">{{ g.title }}</h2>
+{% if config.MOMO_TOC_HEADER %}
+  <h2 class="main-header" data-toc-text="{{ g.title }}">{{ g.title }}</h2>
 {% else %}
   <h1>{{ g.title }}</h1>
 {% endif %}

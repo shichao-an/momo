@@ -9,6 +9,7 @@ from flask import (
     send_from_directory,
 )
 from flask_bootstrap import Bootstrap
+from flask_paginate import Pagination
 from momo.plugins.flask import filters, functions
 from momo.plugins.flask.nodes import process_node
 from momo.plugins.flask.utils import get_public_functions
@@ -42,6 +43,31 @@ app.jinja_env.globals.update(get_public_functions(functions))
 app.url_map.strict_slashes = False
 
 
+def paginate(page, total, per_page, config):
+    record_name = config['MOMO_PAGINATION_RECORD_NAME']
+    display_msg = config['MOMO_PAGINATION_DISPLAY_MSG']
+    pagination = _paginate(
+        page=page,
+        total=total,
+        per_page=per_page,
+        record_name=record_name,
+        display_msg=display_msg,
+    )
+    return pagination
+
+
+def _paginate(page, total, per_page, record_name, display_msg):
+    pagination = Pagination(
+        page=page,
+        total=total,
+        bs_version=3,
+        show_single_page=False,
+        record_name=record_name,
+        display_msg=display_msg,
+    )
+    return pagination
+
+
 @app.route('/node')
 @app.route('/node/<path:path>')
 def node(path=None):
@@ -69,7 +95,14 @@ def index():
     """
     g.title = 'Index'
     g.active_page = 'index'
-    g.nodes = app.config['MOMO_ROOT_NODE'].node_vals
+
+    nodes = app.config['MOMO_ROOT_NODE'].node_vals
+    page = request.args.get('page', type=int, default=1)
+    per_page = app.config['MOMO_PAGINATION_INDEX_PER_PAGE']
+    g.nodes = nodes[per_page * (page - 1):per_page * page]
+    g.pagination = paginate(
+        page=page, total=len(nodes), per_page=per_page, config=app.config)
+
     return render_template('index.html')
 
 

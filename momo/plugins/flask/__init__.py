@@ -21,9 +21,14 @@ MOMO_HEADER_ID: what to show in the header id attribute of the node, which can
                 text), true (use the header text, which may break the
                 javascripts if containing invalid characters).
 MOMO_ROOT_NODE: the root node of the current bucket.
-MOMO_TOC_TITLE: whether to include main title in the TOC (defaults to true).
+MOMO_TOC_HEADER: whether to include main header in the TOC (defaults to true).
 MOMO_INDEX_TABLE: whether to use table format in the index page (defaults to
                   false).
+MOMO_PAGINATION_RECORD_NAME: record name for pagination (defaults to 'node').
+MOMO_PAGINATION_INDEX_PER_PAGE: per page number for index page (default 20).
+MOMO_PAGINATION_NODE_PER_PAGE: per page number for node page (default 20).
+MOMO_PAGINATION_DISPLAY_MSG: display message for pagination (defaults to
+                             '{total} {record_name}.')
 """
 
 
@@ -45,8 +50,17 @@ class Flask(Plugin):
             self.configs.get('sitename') or bucket_name.capitalize())
         app.config['MOMO_HEADER_ID'] = self.configs.get('header_id', False)
         app.config['MOMO_ROOT_NODE'] = self.settings.bucket.root
-        app.config['MOMO_TOC_TITLE'] = self.configs.get('toc_title', True)
+        app.config['MOMO_TOC_HEADER'] = self.configs.get('toc_title', True)
         app.config['MOMO_INDEX_TABLE'] = self.configs.get('index_table', False)
+
+        app.config['MOMO_PAGINATION_RECORD_NAME'] = self.configs.get(
+            'pagination_record_name', 'node')
+        app.config['MOMO_PAGINATION_INDEX_PER_PAGE'] = self.configs.get(
+            'pagination_index_per_page', 20)
+        app.config['MOMO_PAGINATION_NODE_PER_PAGE'] = self.configs.get(
+            'pagination_node_per_page', 20)
+        app.config['MOMO_PAGINATION_DISPLAY_MSG'] = self.configs.get(
+            'pagination_display_msg', '{total} {record_name}.')
 
         # load and register user-defined filter and global functions
         filters_f = os.path.join(flask_dir, 'filters.py')

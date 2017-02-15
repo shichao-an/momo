@@ -3,7 +3,13 @@
 Just list all child nodes.
 
 #}
+
+{{ g.pagination.info }}
+{{ g.pagination.links }}
+
 {% for node in g.nodes %}
   {% include "node_header.html" %}
   {% include "node_attrs.html" %}
 {% endfor %}
+
+{{ g.pagination.links }}
