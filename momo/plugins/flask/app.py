@@ -9,8 +9,8 @@ from flask import (
     send_from_directory,
 )
 from flask_bootstrap import Bootstrap
-from flask_paginate import Pagination
 from momo.plugins.flask import filters, functions
+from momo.plugins.flask.functions import paginate
 from momo.plugins.flask.nodes import process_node
 from momo.plugins.flask.utils import get_public_functions
 
@@ -41,31 +41,6 @@ app.jinja_env.filters.update(get_public_functions(filters))
 app.jinja_env.globals.update(get_public_functions(functions))
 
 app.url_map.strict_slashes = False
-
-
-def paginate(page, total, per_page, config):
-    record_name = config['MOMO_PAGINATION_RECORD_NAME']
-    display_msg = config['MOMO_PAGINATION_DISPLAY_MSG']
-    pagination = _paginate(
-        page=page,
-        total=total,
-        per_page=per_page,
-        record_name=record_name,
-        display_msg=display_msg,
-    )
-    return pagination
-
-
-def _paginate(page, total, per_page, record_name, display_msg):
-    pagination = Pagination(
-        page=page,
-        total=total,
-        bs_version=3,
-        show_single_page=False,
-        record_name=record_name,
-        display_msg=display_msg,
-    )
-    return pagination
 
 
 @app.route('/node')
