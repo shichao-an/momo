@@ -6,14 +6,14 @@ Just list all child nodes.
 
 {% set page = get_page(request) %}
 {% set per_page = config['MOMO_PAGINATION_INDEX_PER_PAGE'] %}
-{% set total = g.nodes|length %}
+{% set total = nodes|length %}
 {% set pagination = paginate(
     page=page,
     total=total,
     per_page=per_page,
     config=config)
 %}
-{% set nodes = g.nodes[per_page * (page - 1):per_page * page] %}
+{% set nodes = nodes[per_page * (page - 1):per_page * page] %}
 
 {{ pagination.info }}
 {{ pagination.links }}

@@ -20,15 +20,17 @@ It first lists attributes of this node, then iterates over its child nodes.
 %}
 {% set nodes = node.node_vals[per_page * (page - 1):per_page * page] %}
 <div>
-  {{ pagination.info }}
-  {{ pagination.links }}
+  {% if nodes %}
+    {{ pagination.info }}
+    {{ pagination.links }}
 
-  {% for node in nodes %}
-  <div>
-    {% include "node_header.html" %}
-    {% include "node_attrs.html" %}
-  </div>
-  {% endfor %}
+    {% for node in nodes %}
+    <div>
+      {% include "node_header.html" %}
+      {% include "node_attrs.html" %}
+    </div>
+    {% endfor %}
 
-  {{ pagination.links }}
+    {{ pagination.links }}
+  {% endif %}
 </div>

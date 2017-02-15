@@ -3,7 +3,7 @@
     ('/', 'index', 'Index'),
     ('/search/', 'search', 'Search'),
 ] -%}
-{% set active_page = g.active_page|default('index') -%}
+{% set active_page = g.title|default('Index') -%}
 <div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
     <!-- Collapsed navigation -->
@@ -23,7 +23,7 @@
       <!-- Main navigation -->
       <ul class="nav navbar-nav">
         {% for href, id, caption in navigation_bar %}
-        <li{% if id == active_page %} class="active"{% endif %}>
+        <li{% if id == active_page|lower %} class="active"{% endif %}>
           <a href="{{ href|e }}">{{ caption|e }}</a>
         </li>
         {% endfor %}

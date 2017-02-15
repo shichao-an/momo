@@ -2,7 +2,6 @@ import os
 
 from flask import (
     Flask,
-    g,
     redirect,
     render_template,
     request,
@@ -10,8 +9,7 @@ from flask import (
 )
 from flask_bootstrap import Bootstrap
 from momo.plugins.flask import filters, functions
-from momo.plugins.flask.functions import paginate
-from momo.plugins.flask.nodes import process_node
+import momo.plugins.flask.nodes
 from momo.plugins.flask.utils import get_public_functions
 
 
@@ -43,22 +41,64 @@ app.jinja_env.globals.update(get_public_functions(functions))
 app.url_map.strict_slashes = False
 
 
+def get_node_function(name, functions):
+    if name in functions:
+        return functions[name]
+    else:
+        return getattr(momo.plugins.flask.nodes, name)
+
+
 @app.route('/node')
 @app.route('/node/<path:path>')
 def node(path=None):
     if path is None:
         return redirect('/')
-    g.path = path
-    g.title = os.path.basename(path)
-    node = process_node(path, app.config['MOMO_ROOT_NODE'], request)
+
+    root = app.config['MOMO_ROOT_NODE']
+    funcs = app.config['MOMO_NODES_FUNCTIONS']
+
+    get_node_function('pre_node', funcs)(
+        path=path,
+        root=root,
+        request=request)
+
+    node = get_node_function('process_node', funcs)(
+        path=path,
+        root=root,
+        request=request,
+    )
+
+    node = get_node_function('post_node', funcs)(
+        path=path,
+        root=root,
+        request=request,
+        node=node,
+    )
+
     return render_template('node.html', node=node)
 
 
 @app.route('/search')
 def search():
-    g.title = 'Search'
-    g.active_page = 'search'
-    nodes = []
+    root = app.config['MOMO_ROOT_NODE']
+    funcs = app.config['MOMO_NODES_FUNCTIONS']
+
+    get_node_function('pre_search', funcs)(
+        root=root,
+        request=request
+    )
+
+    nodes = get_node_function('process_search', funcs)(
+        root=root,
+        request=request,
+    )
+
+    nodes = get_node_function('post_search', funcs)(
+        root=root,
+        request=request,
+        nodes=nodes,
+    )
+
     return render_template('search.html', nodes=nodes)
 
 
@@ -68,11 +108,27 @@ def index():
     Default index page that lists all nodes of root, deemed as a special
     case for /node/.
     """
-    g.title = 'Index'
-    g.active_page = 'index'
-    g.nodes = app.config['MOMO_ROOT_NODE'].node_vals
 
-    return render_template('index.html')
+    root = app.config['MOMO_ROOT_NODE']
+    funcs = app.config['MOMO_NODES_FUNCTIONS']
+
+    get_node_function('pre_index', funcs)(
+        root=root,
+        request=request
+    )
+
+    nodes = get_node_function('process_index', funcs)(
+        root=root,
+        request=request,
+    )
+
+    nodes = get_node_function('post_index', funcs)(
+        root=root,
+        request=request,
+        nodes=nodes,
+    )
+
+    return render_template('index.html', nodes=nodes)
 
 
 @app.route('/files/<path:filename>')

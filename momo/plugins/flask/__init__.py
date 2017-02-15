@@ -29,6 +29,8 @@ MOMO_PAGINATION_INDEX_PER_PAGE: per page number for index page (default 20).
 MOMO_PAGINATION_NODE_PER_PAGE: per page number for node page (default 20).
 MOMO_PAGINATION_DISPLAY_MSG: display message for pagination (defaults to
                              '{total} {record_name}.')
+MOMO_NODES_FUNCTIONS: a dictionary of names to user-defined node functions
+                      (see nodes.py).
 """
 
 
@@ -64,17 +66,21 @@ class Flask(Plugin):
 
         # load and register user-defined filter and global functions
         filters_f = os.path.join(flask_dir, 'filters.py')
-        functions_f = os.path.join(flask_dir, 'functions.py')
         if os.path.isfile(filters_f):
             filters = imp.load_source('filters', filters_f)
-            get_public_functions(filters)
             app.jinja_env.filters.update(get_public_functions(filters))
 
-        # register default global functions
+        functions_f = os.path.join(flask_dir, 'functions.py')
         if os.path.isfile(functions_f):
             functions = imp.load_source('functions', functions_f)
-            get_public_functions(filters)
             app.jinja_env.globals.update(get_public_functions(functions))
+
+        # load user-defined nodes functions
+        nodes_f = os.path.join(flask_dir, 'nodes.py')
+        app.config['MOMO_NODES_FUNCTIONS'] = {}
+        if os.path.isfile(nodes_f):
+            nodes = imp.load_source('nodes', nodes_f)
+            app.config['MOMO_NODES_FUNCTIONS'] = get_public_functions(nodes)
 
     def _reset_loader(self, user_template_folder):
         """Add user-defined template folder."""
