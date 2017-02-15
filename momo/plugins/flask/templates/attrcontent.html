@@ -1,1 +1,15 @@
-{{ attr.content | urlize }}
+{# default attr content
+
+Template attrcontent_ATTRNAME.html is used if exists.
+
+#}
+{% if attr.content is iterable and attr.content is not string %}
+  {% for content in attr.content %}
+    {{ content | urlize }}
+    {% if not loop.last %}
+      </br>
+    {% endif %}
+  {% endfor %}
+{% else %}
+  {{ attr.content | urlize }}
+{% endif %}

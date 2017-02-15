@@ -1,3 +1,8 @@
+{# node header
+
+Template for node header.
+
+#}
 <h2 data-toc-text="{{ node.name }}"
 {% if config.MOMO_HEADER_ID == 'slug' %}
   id="{{ node.name | slugify }}"

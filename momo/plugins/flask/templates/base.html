@@ -1,3 +1,4 @@
+{# base layout #}
 {% extends "bootstrap/base.html" %}
 
 {% block title %}{{ g.title }} - {{ config.MOMO_SITENAME }}{% endblock %}
@@ -21,7 +22,7 @@
     {% include "toc.html" %}
   </div>
   <div class="col-md-9" role="main">
-    {% include "main_title.html" %}
+    {% include "main_header.html" %}
     {% block main %}
       {% include "base_content.html" %}
     {% endblock %}

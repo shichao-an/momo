@@ -28,7 +28,7 @@ def attr_path(node):
 
 
 def node_to_path(node):
-    """Get URL path (reverse of node_from_path)."""
+    """Get URL path from a node (reverse of node_from_path)."""
     paths = []
     while node.parent is not None:
         paths.insert(0, node.name)

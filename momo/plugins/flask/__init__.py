@@ -23,7 +23,7 @@ MOMO_HEADER_ID: what to show in the header id attribute of the node, which can
 MOMO_ROOT_NODE: the root node of the current bucket.
 MOMO_TOC_TITLE: whether to include main title in the TOC (defaults to true).
 MOMO_INDEX_TABLE: whether to use table format in the index page (defaults to
-                  false)
+                  false).
 """
 
 
