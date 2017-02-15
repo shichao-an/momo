@@ -14,13 +14,13 @@ from momo.plugins.flask.utils import get_public_functions
 """
 app.config values of the current bucket:
 
+MOMO_ROOT_NODE: the root node of the current bucket.
 MOMO_FILES_FOLDER: user files folder.
 MOMO_SITENAME: sitename (defaults to bucket name).
 MOMO_HEADER_ID: what to show in the header id attribute of the node, which can
                 be false (do not show id, default), slug (slugify the header
-                text), true (use the header text, which may break the
+                text), or true (use the header text, which may break browser
                 javascripts if containing invalid characters).
-MOMO_ROOT_NODE: the root node of the current bucket.
 MOMO_TOC_HEADER: whether to include main header in the TOC (defaults to true).
 MOMO_INDEX_TABLE: whether to use table format in the index page (defaults to
                   false).
@@ -47,11 +47,11 @@ class Flask(Plugin):
         self._reset_loader(user_template_folder)
 
         # configuration values
+        app.config['MOMO_ROOT_NODE'] = self.settings.bucket.root
         app.config['MOMO_FILES_FOLDER'] = os.path.join(flask_dir, 'files')
         app.config['MOMO_SITENAME'] = (
             self.configs.get('sitename') or bucket_name.capitalize())
         app.config['MOMO_HEADER_ID'] = self.configs.get('header_id', False)
-        app.config['MOMO_ROOT_NODE'] = self.settings.bucket.root
         app.config['MOMO_TOC_HEADER'] = self.configs.get('toc_title', True)
         app.config['MOMO_INDEX_TABLE'] = self.configs.get('index_table', False)
 
