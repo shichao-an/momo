@@ -67,7 +67,12 @@ class NodeAction(Action):
         """
         Get an Attribute object by the name `attrname`.
         """
-        return self.elem.attrs[attrname]
+        if attrname in self.elem.attrs:
+            return self.elem.attrs[attrname]
+        else:
+            msg = txt_type(u'{} attribute does not exist in {} {}'.format(
+                attrname, self.elem.type.lower(), self.elem.name))
+            raise ActionError(msg)
 
     def open(self, attrname='path'):
         attr = self.get_attr(attrname)

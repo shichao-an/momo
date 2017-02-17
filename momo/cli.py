@@ -8,10 +8,14 @@ from cliff.command import Command
 from cliff.commandmanager import CommandManager
 from momo import plugins
 from momo.backends import OrderedDict
-from momo.core import configs
+from momo.core import configs, AttrError
 from momo.settings import settings
-from momo.utils import utf8_decode, page_lines, eval_path
+from momo.utils import txt_type, utf8_decode, page_lines, eval_path
 import momo.core
+import inspect
+
+
+INDENT_UNIT = '  '
 
 
 class MomoCliApp(App):
@@ -66,6 +70,70 @@ class MomoCliApp(App):
         if self.cbn != bucket_name:  # only load bucket from path if changed
             self.cbn = bucket_name
             self.bucket = settings.bucket
+
+    def run_subcommand(self, argv):
+        try:
+            subcommand = self.command_manager.find_command(argv)
+        except ValueError as err:
+            # If there was no exact match, try to find a fuzzy match
+            the_cmd = argv[0]
+            fuzzy_matches = self.get_fuzzy_matches(the_cmd)
+            if fuzzy_matches:
+                article = 'a'
+                if self.NAME[0] in 'aeiou':
+                    article = 'an'
+                self.stdout.write('%s: \'%s\' is not %s %s command. '
+                                  'See \'%s --help\'.\n'
+                                  % (self.NAME, the_cmd, article,
+                                      self.NAME, self.NAME))
+                self.stdout.write('Did you mean one of these?\n')
+                for match in fuzzy_matches:
+                    self.stdout.write('  %s\n' % match)
+            else:
+                if self.options.debug:
+                    raise
+                else:
+                    self.LOG.error(err)
+            return 2
+        cmd_factory, cmd_name, sub_argv = subcommand
+        kwargs = {}
+        if 'cmd_name' in inspect.getargspec(cmd_factory.__init__).args:
+            kwargs['cmd_name'] = cmd_name
+        cmd = cmd_factory(self, self.options, **kwargs)
+        err = None
+        result = 1
+        try:
+            self.prepare_to_run_command(cmd)
+            full_name = (cmd_name
+                         if self.interactive_mode
+                         else ' '.join([self.NAME, cmd_name])
+                         )
+            cmd_parser = cmd.get_parser(full_name)
+            parsed_args = cmd_parser.parse_args(sub_argv)
+            result = cmd.run(parsed_args)
+        except Exception as err:
+            if self.options.debug:
+                self.LOG.exception(err.message)
+            else:
+                self.LOG.error(err.message)
+            try:
+                self.clean_up(cmd, result, err)
+            except Exception as err2:
+                if self.options.debug:
+                    self.LOG.exception(err2.message)
+                else:
+                    self.LOG.error('Could not clean up: %s', err2.message)
+            if self.options.debug:
+                raise
+        else:
+            try:
+                self.clean_up(cmd, result, None)
+            except Exception as err3:
+                if self.options.debug:
+                    self.LOG.exception(err3)
+                else:
+                    self.LOG.error('Could not clean up: %s', err3)
+        return result
 
 
 class External(Command):
@@ -462,9 +530,10 @@ class Indexer(object):
         while names and parent is not elem:
             parent = elem
             name_or_num = names.pop(0)
-            elem = elem.ls(name_or_num=name_or_num, unordered=self.unordered,
-                           show_path=self.show_path,
-                           expand_attr=self.expand_attr)
+            elem = self.ls_elem(elem, name_or_num=name_or_num,
+                                unordered=self.unordered,
+                                show_path=self.show_path,
+                                expand_attr=self.expand_attr)
         if return_elem:
             return elem
         action = elem.action
@@ -472,8 +541,11 @@ class Indexer(object):
             if names:
                 self.parser.error('too many names or numbers')
         if self._ls_action(action):
-            elem.ls(show_path=self.show_path, elem_type=self.elem_type,
-                    unordered=self.unordered, expand_attr=self.expand_attr)
+            self.ls_elem(elem,
+                         show_path=self.show_path,
+                         elem_type=self.elem_type,
+                         unordered=self.unordered,
+                         expand_attr=self.expand_attr)
 
     def _ls_action(self, action):
         if self.to_open:
@@ -493,6 +565,149 @@ class Indexer(object):
                 action.cmd(num=self.cmd)
         else:
             return True
+
+    def ls_elem(self, elem, *args, **kwargs):
+        if elem.is_node:
+            return Indexer.node_ls(elem, *args, **kwargs)
+        elif elem.is_attr:
+            return Indexer.attr_ls(elem, *args, **kwargs)
+
+    @staticmethod
+    def node_ls(node, name_or_num=None, show_path=False, sort_by=None,
+                unordered=False, elem_type=None, **kwargs):
+        """
+        List and print elements of the Node object.  If `name_or_num` is not
+        None, then return the element that matches.
+
+        :param name_or_num: element name or number.  The name has higher
+                            precedence than number.
+        :param show_path: whether to show path to the element.
+        :param sort_by: the name of the sorting key.  If it is None, then the
+                        sorting key is the element name.  If it is a name, then
+                        the content of the attribute with this name is used as
+                        the key.
+        :param unordered: whether to present elements unordered.  If it is
+                          True, the original order in the document is used.
+        :param elem_type: the element type.  If None, then all types are
+                          included. Otherwise, it is one of "file",
+                          "directory", "node", and "attribute".
+
+        :return: the element that matches `name_or_num` (if it is not None)
+        """
+        if show_path and not node.is_root:
+            node._print_path()
+        if name_or_num is None:
+            Indexer._node_ls_all(node, show_path, sort_by, unordered,
+                                 elem_type)
+        else:
+            elem = None
+            try:
+                name_or_num = int(name_or_num)
+            except ValueError:
+                pass
+            if isinstance(name_or_num, int):
+                if str(name_or_num) in node.elems:
+                    elem = node.get_elem_by_name(name_or_num)
+                else:
+                    elem = node.get_elem_by_num(
+                        name_or_num, sort_by, unordered, elem_type)
+            else:
+                elem = node.get_elem_by_name(name_or_num)
+            return elem
+
+    @staticmethod
+    def _node_ls_all(node, show_path, sort_by, unordered, elem_type):
+        try:
+            indent = ''
+            if show_path:
+                indent = INDENT_UNIT * node.level
+            vals = node.get_vals(sort_by, unordered, elem_type)
+            width = len(str(len(vals)))
+            fmt = '%s%{}d [%s] %s'.format(width)
+            for num, elem in enumerate(vals, start=1):
+                if not configs.short_output:
+                    node.lines.append(
+                        fmt % (indent, num, elem.type[0], elem.name))
+                else:
+                    node.lines.append(elem.name)
+        finally:
+            node.flush_lines()
+
+    @staticmethod
+    def attr_lsattr(attr, name_or_num, show_path=False, expand_attr=False):
+        """List attribute content."""
+        try:
+            if not attr.has_items:
+                raise AttrError('cannot list non-list-type attribute')
+            indent = ''
+            if show_path:
+                indent = INDENT_UNIT * (attr.level + 1)
+            try:
+                name_or_num = int(name_or_num)
+            except ValueError:
+                msg = 'must use a integer to index list-type attribute'
+                raise AttrError(msg)
+            content = attr.content
+            if expand_attr:
+                content = attr.parent.action.expand_attr(attr.name)
+            val = content[name_or_num - 1]
+            if not configs.short_output:
+                attr.lines.append(
+                    '%s%s[%d]: %s' % (indent, attr.name, name_or_num, val))
+            else:
+                attr.lines.append(val)
+            attr._index = name_or_num
+            return attr
+        finally:
+            attr.flush_lines()
+
+    @staticmethod
+    def attr_ls(attr, name_or_num=None, show_path=False, expand_attr=False,
+                **kwargs):
+        """
+        List content of the attribute. If `name_or_num` is not None, return
+        the matched item of the content.
+        """
+        if name_or_num is None:
+            Indexer._attr_ls_all(attr, show_path, expand_attr)
+        else:
+            return Indexer.attr_lsattr(name_or_num, show_path, expand_attr)
+
+    @staticmethod
+    def _attr_ls_all(attr, show_path, expand_attr):
+        try:
+            if attr._index is not None:
+                return
+            indent = ''
+            if show_path:
+                indent = INDENT_UNIT * attr.level
+            content = attr.content
+            if expand_attr:
+                content = attr.parent.action.expand_attr(attr.name)
+            if attr.has_items:
+                if not configs.short_output:
+                    attr.lines.append('%s%s:' % (indent, attr.name))
+                indent += INDENT_UNIT
+                width = len(str(len(content)))
+                fmt = '%s%{}d %s'.format(width)
+                for num, item in enumerate(content, start=1):
+                    if not configs.short_output:
+                        attr.lines.append(fmt % (indent, num, item))
+                    else:
+                        attr.lines.append(item)
+            elif isinstance(content, (txt_type, bool, int, float)):
+                if not configs.short_output:
+                    attr.lines.append(
+                        '%s%s: %s' % (indent, attr.name, content))
+                else:
+                    attr.lines.append(content)
+            elif content is None:
+                if not configs.short_output:
+                    attr.lines.append('%s%s: %s' % (indent, attr.name, ''))
+            else:
+                raise AttrError('unknown type for attribute content')
+        finally:
+            attr.flush_lines()
 
 
 def main(argv=sys.argv[1:]):
