@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, absolute_import
-from contextlib import contextmanager
 from operator import attrgetter
 from momo.utils import txt_type, PY3, utf8_decode
 from momo.actions import NodeAction, AttributeAction
@@ -8,8 +7,6 @@ from momo.backends import OrderedDict
 import sys
 
 
-INDENT_UNIT = '  '
-LINES = []  # cached lines
 ROOT_NODE_NAME = '(root)'
 PLACEHOLDER = '__placeholder__'
 
@@ -25,17 +22,6 @@ class Configs(object):
         self.CONFIGS[name] = value
 
 configs = Configs()
-
-
-@contextmanager
-def lines(lines=None):
-    if lines is None:
-        global LINES
-        lines = LINES
-    try:
-        yield lines
-    finally:
-        del lines[:]
 
 
 class Base(object):
@@ -104,34 +90,18 @@ class Element(Base):
     """
     def __init__(self, name, bucket, parent, content):
         """
-        :param cache_lines: whether to cache lines to the global LINES
-                            variable.
         :param no_output: whether to suppress output.
         """
         self.name = name
         self.bucket = bucket
         self.parent = parent
         self.content = content
-        self._lines = []
         if parent is None:
             self.path = []
         else:
             self.path = parent.path[:]
             self.path.append(self.name)
         self._action = None
-
-    @property
-    def lines(self):
-        if configs.cache_lines:
-            return LINES
-        else:
-            return self._lines
-
-    def flush_lines(self):
-        if self._lines:
-            with lines(self._lines) as _lines:
-                if not configs.no_output:
-                    print('\n'.join(_lines))
 
     @property
     def action(self):
@@ -318,10 +288,6 @@ class Node(Element):
         except IndexError:
             raise ElemError(
                 'element index out of range (1-%d)' % len(vals))
-
-    def _print_path(self):
-        indent = INDENT_UNIT * (self.level - 1)
-        self.lines.append('%s%s' % (indent, self.name))
 
     def get_elems(self, elem_type=None):
         """
