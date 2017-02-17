@@ -1,6 +1,7 @@
 # functions to process nodes
 import os
 from flask import g
+from momo.plugins.flask.filters import get_attr
 
 
 def pre_node(path, root, request):
@@ -38,6 +39,8 @@ def process_search(root, term, request):
     """
     Function to process requests for search view. It returns nodes.
     """
+    if term is not None:
+        print(parse_search_term(term))
     nodes = search_nodes(root)
     nodes = sort_nodes(nodes, func=lambda node: node.name)
     return nodes
@@ -81,13 +84,38 @@ def node_from_path(path, root):
     return node
 
 
+class SearchError(Exception):
+    pass
+
+
 def parse_search_term(term):
-    """Parse a search term and returns a search set of dictionaries."""
-    res = set()
+    """Parse a search term and returns list of list of lambdas."""
+    res = []
     subterms = term.split('/')
     for subterm in subterms:
-        pass
+        components = filter(lambda x: x.strip(), subterm.split('&'))
+        lbds = []
+        for component in components:
+            key, value = filter(lambda x: x.strip(), component.split('='))
+            if ':' in key:
+                prefix, name = key.split(':', 1)
+                if prefix == 'a':
+                    lbds.append(lambda node: get_attr(node, name) == value)
+                elif prefix == 'n':
+                    lbds.append(lambda node: getattr(node, name) == value)
+                else:
+                    raise SearchError('unknown prefix {}'.format(prefix))
+            else:
+                lbds.append(lambda node: get_attr(node, name) == value)
+        res.append(lbds)
     return res
+
+
+def get_search_filter(node, parsed_term):
+    def search_filter(node):
+        pass
+
+    return search_filter
 
 
 def filter_default(node):
