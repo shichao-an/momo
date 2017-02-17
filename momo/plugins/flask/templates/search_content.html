@@ -3,3 +3,24 @@
 Template for search content.
 
 #}
+
+{% set page = get_page(request) %}
+{% set per_page = config['MOMO_PAGINATION_INDEX_PER_PAGE'] %}
+{% set total = nodes|length %}
+{% set pagination = paginate(
+    page=page,
+    total=total,
+    per_page=per_page,
+    config=config)
+%}
+{% set nodes = nodes[per_page * (page - 1):per_page * page] %}
+
+{{ pagination.info }}
+{{ pagination.links }}
+
+{% for node in nodes %}
+  {% include "node_header.html" %}
+  {% include "node_attrs.html" %}
+{% endfor %}
+
+{{ pagination.links }}

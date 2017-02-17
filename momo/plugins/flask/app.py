@@ -40,6 +40,15 @@ app.jinja_env.globals.update(get_public_functions(functions))
 
 app.url_map.strict_slashes = False
 
+"""
+Query strings for all views:
+
+    ?sort=: sort by a key, which can be prefixed with a: (attr), n: (node
+    object attribute), and f: (a pre-defined function).
+    ?desc=: in descending order (only effective when ?sort= is present)
+
+"""
+
 
 def get_node_function(name, functions):
     if name in functions:
@@ -79,22 +88,40 @@ def node(path=None):
 
 
 @app.route('/search')
-def search():
+@app.route('/search/<path:term>')
+def search(term=None):
+    """
+    A search term is a path-like string seperated by slash (/). The slashes
+    "AND" these path components together, meaning the results are those which
+    satisfy all of them. Each component also comprises some sub-terms, in the
+    form of "key1=value1&key2=value2", with each key having an optional
+    prefix, which can be "n:" (a node object's attribute) or "a:" (an attr
+    name); if the prefix is omitted, then it defaults to "a:". Note that
+    although the sub-terms are seperated by ampersand (&), they are "OR"ed
+    together, meaning the results are those satisfy any of them.
+
+    Query string is "?q=", which indicates a query that is used to match
+    content of all attrs of all nodes all filtered in the above steps.
+    """
+
     root = app.config['MOMO_ROOT_NODE']
     funcs = app.config['MOMO_NODES_FUNCTIONS']
 
     get_node_function('pre_search', funcs)(
         root=root,
-        request=request
+        term=term,
+        request=request,
     )
 
     nodes = get_node_function('process_search', funcs)(
         root=root,
+        term=term,
         request=request,
     )
 
     nodes = get_node_function('post_search', funcs)(
         root=root,
+        term=term,
         request=request,
         nodes=nodes,
     )

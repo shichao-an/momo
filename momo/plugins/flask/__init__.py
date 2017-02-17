@@ -62,7 +62,7 @@ class Flask(Plugin):
         app.config['MOMO_PAGINATION_NODE_PER_PAGE'] = self.configs.get(
             'pagination_node_per_page', 20)
         app.config['MOMO_PAGINATION_DISPLAY_MSG'] = self.configs.get(
-            'pagination_display_msg', '{total} {record_name}.')
+            'pagination_display_msg', '{total} {record_name}s.')
 
         # load and register user-defined filter and global functions
         filters_f = os.path.join(flask_dir, 'filters.py')
