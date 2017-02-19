@@ -14,7 +14,7 @@ from momo.plugins.flask.utils import get_public_functions
 
 
 FLASK_DEFAULT_HOST = '127.0.0.1'
-FLASK_DEFAULT_PORT = '7000'
+FLASK_DEFAULT_PORT = 7000
 FLASK_DEFAULT_DEBUG = True
 FLASK_APP_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__)))
 FLASK_TEMPLATE_FOLDER = os.path.join(FLASK_APP_ROOT, 'templates')
@@ -160,6 +160,16 @@ def files(filename):
 @app.before_request
 def fix_trailing():
     """Always add a single trailing slash."""
+    rp = request.path
+    if rp != '/':
+        if not rp.endswith('/'):
+            return redirect(rp + '/')
+        elif rp.endswith('//'):
+            return redirect(rp.rstrip('/') + '/')
+
+
+@app.before_request
+def fix_slashes():
     rp = request.path
     if rp != '/':
         if not rp.endswith('/'):

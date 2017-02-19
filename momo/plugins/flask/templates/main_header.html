@@ -9,7 +9,5 @@ Header shown in the main content body.
   <h1>{{ g.title }}</h1>
 {% endif %}
 {% if g.path %}
-<div>
-  <small>{{ g.path }}</small>
-</div>
+  {% include "node_path.html" %}
 {% endif %}

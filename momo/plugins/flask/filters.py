@@ -34,3 +34,8 @@ def node_to_path(node):
         paths.insert(0, node.name)
         node = node.parent
     return '/'.join(paths)
+
+
+def split_path(path):
+    """Split a path into a list of path components."""
+    return path.split('/')

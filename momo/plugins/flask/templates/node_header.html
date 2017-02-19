@@ -10,5 +10,6 @@ Template for node header.
   id="{{ node.name }}"
 {% endif %}
 >
-<a href="/node/{{ node | node_to_path }}/">{{ node.name }}</a>
+{% set node_path = node|node_to_path %}
+<a href="/node/{{ node_path }}/">{{ node.name }}</a>
 </h2>
