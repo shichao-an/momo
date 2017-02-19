@@ -1,6 +1,12 @@
 # search backend
+import re
+
+
 from momo.plugins.flask.filters import get_attr
 from momo.utils import txt_type
+
+
+FALSE_STR_PATTREN = '^(0|false|False)$'
 
 
 class SearchError(Exception):
@@ -8,7 +14,20 @@ class SearchError(Exception):
 
 
 def parse_search_term(term):
-    """Parse a search term and returns list of list of lambdas."""
+    """
+    Parse a search term and returns list of lambdas lists.
+
+    A search term is a path-like string seperated by slash (/). The slashes
+    "AND" these path components together, meaning the results are those which
+    satisfy all of them. Each component also comprises some sub-terms, in the
+    form of "key1=value1&key2=value2", with each key having an optional
+    prefix, which can be "n[x]:" (a node object's attribute) or "a[x]:" (an
+    attr name); the optional "x" suffix indicates whether to perform an exact
+    match. Note that although the sub-terms are seperated by ampersand (&),
+    they are "OR"ed together, meaning the results are those satisfy any of
+    them.
+
+    """
     res = []
     entities = term.split('/')
     for entity in entities:
@@ -18,15 +37,17 @@ def parse_search_term(term):
             key, value = subterm.split('=')
             if ':' in key:
                 prefix, name = key.split(':', 1)
-                if prefix == 'a':
+                if prefix in ('a', 'ax'):
                     lambdas.append(
                         lambda node, name=name, value=value:
-                        txt_type(get_attr(node, name)) == value
+                        match_value(get_attr(node, name), value,
+                                    prefix == 'ax')
                     )
-                elif prefix == 'n':
+                elif prefix in ('n', 'nx'):
                     lambdas.append(
                         lambda node, name=name, value=value:
-                        txt_type(getattr(node, name)) == value
+                        match_value(getattr(node, name), value,
+                                    prefix == 'nx')
                     )
                 else:
                     raise SearchError('unknown prefix {}'.format(prefix))
@@ -36,17 +57,46 @@ def parse_search_term(term):
     return res
 
 
-def match_content(content, s, exact=False):
+def match_value(value, s, exact=False):
     """
-    Test whether the value of node attribute or attr content matches the
-    give string s, which is retrieved from parsed term.
+    Test whether the value of a node attribute or attr content matches the
+    given string s, which is retrieved from parsed term.
 
-    :param content:
+    :param value: value of a node attribute or attr content.
+    :param s: a string.
+    :param exact: whether to do exact matches.
     """
-    if isinstance(content, (txt_type, bool, int, float)):
-        pass
+    if value is None:
+        return False
+    s = txt_type(s)
+    if isinstance(value, (txt_type, bool, int, float)):
+        if isinstance(value, bool):
+            return match_bool(value, s)
+        else:
+            if exact:
+                return txt_type(value) == s
+            else:
+                return s in txt_type(value)
     else:
-        pass
+        txt_values = map(txt_type, value)
+        if exact:
+            return s in txt_values
+        else:
+            for txt_value in txt_values:
+                if s in txt_value:
+                    return True
+            return False
+
+
+def match_bool(value, s):
+    """
+    Test whether a boolean value matches the given string s.
+    """
+    if re.match(FALSE_STR_PATTREN, s):
+        s = False
+    else:
+        s = True
+    return value == s
 
 
 def get_search_filter(lambda_lists):

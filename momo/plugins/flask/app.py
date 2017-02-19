@@ -91,14 +91,7 @@ def node(path=None):
 @app.route('/search/<path:term>')
 def search(term=None):
     """
-    A search term is a path-like string seperated by slash (/). The slashes
-    "AND" these path components together, meaning the results are those which
-    satisfy all of them. Each component also comprises some sub-terms, in the
-    form of "key1=value1&key2=value2", with each key having an optional
-    prefix, which can be "n:" (a node object's attribute) or "a:" (an attr
-    name); if the prefix is omitted, then it defaults to "a:". Note that
-    although the sub-terms are seperated by ampersand (&), they are "OR"ed
-    together, meaning the results are those satisfy any of them.
+    A search term is a path-like string. See parse_search_term for usage.
 
     Query string is "?q=", which indicates a query that is used to match
     content of all attrs of all nodes all filtered in the above steps.
