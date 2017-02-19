@@ -111,12 +111,7 @@ def get_search_filter(lambda_lists):
     return search_filter
 
 
-def filter_default(node):
-    """Default search filter function."""
-    return True
-
-
-def search_nodes(root, func=filter_default):
+def search_nodes(root, func=lambda x: True):
     """
     Search nodes from the root in a BFS manner.
 

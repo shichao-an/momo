@@ -10,6 +10,8 @@ from momo.plugins.flask.app import (
     FLASK_DEFAULT_DEBUG
 )
 from momo.plugins.flask.utils import get_public_functions
+import momo.plugins.flask.sorting
+import momo.plugins.flask.nodes
 
 """
 app.config values of the current bucket:
@@ -29,8 +31,10 @@ MOMO_PAGINATION_INDEX_PER_PAGE: per page number for index page (default 20).
 MOMO_PAGINATION_NODE_PER_PAGE: per page number for node page (default 20).
 MOMO_PAGINATION_DISPLAY_MSG: display message for pagination (defaults to
                              '{total} {record_name}.')
-MOMO_NODES_FUNCTIONS: a dictionary of names to user-defined node functions
+MOMO_NODES_FUNCTIONS: a dictionary of names to default and user node functions
                       (see nodes.py).
+MOMO_SORTING_FUNCTIONS: a dictionary of names to default and user sorting key
+                        functions (see sorting.py).
 """
 
 
@@ -75,12 +79,38 @@ class Flask(Plugin):
             functions = imp.load_source('functions', functions_f)
             app.jinja_env.globals.update(get_public_functions(functions))
 
-        # load user-defined nodes functions
-        nodes_f = os.path.join(flask_dir, 'nodes.py')
-        app.config['MOMO_NODES_FUNCTIONS'] = {}
-        if os.path.isfile(nodes_f):
-            nodes = imp.load_source('nodes', nodes_f)
-            app.config['MOMO_NODES_FUNCTIONS'] = get_public_functions(nodes)
+        # load system and user-defined nodes functions
+        app.config['MOMO_NODES_FUNCTIONS'] = self._load_functions(
+            module=momo.plugins.flask.nodes,
+            filename=os.path.join(flask_dir, 'nodes.py'),
+        )
+
+        # load system and user-define sorting key functions
+        app.config['MOMO_SORTING_FUNCTIONS'] = self._load_functions(
+            module=momo.plugins.flask.sorting,
+            filename=os.path.join(flask_dir, 'sorting.py'),
+            prefix='sort_by_',
+        )
+
+    def _load_functions(self, module, filename, prefix=''):
+        """Load functions from a module and a user file. The functions from
+        latter are able to override the those from the former. If the user
+        file does not exist, then ignore loading functions from it.
+        """
+        # default function
+        functions = {
+            name: func for (name, func) in
+            get_public_functions(module).items()
+            if name.startswith(prefix)
+        }
+        if os.path.isfile(filename):
+            user_mod = imp.load_source('', filename)
+            user_funcs = get_public_functions(user_mod)
+            functions.update({
+                name: func for (name, func) in user_funcs.items()
+                if name.startswith(prefix)
+            })
+        return functions
 
     def _reset_loader(self, user_template_folder):
         """Add user-defined template folder."""

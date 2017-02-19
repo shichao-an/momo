@@ -9,7 +9,6 @@ from flask import (
 )
 from flask_bootstrap import Bootstrap
 from momo.plugins.flask import filters, functions
-import momo.plugins.flask.nodes
 from momo.plugins.flask.utils import get_public_functions
 
 
@@ -44,17 +43,15 @@ app.url_map.strict_slashes = False
 Query strings for all views:
 
     ?sort=: sort by a key, which can be prefixed with a: (attr), n: (node
-    object attribute), and f: (a pre-defined function).
+    object attribute), and f: (a pre-defined function). For example:
+
+        ?sort=n:name means to sort by node name.
+        ?sort=a:size means to sort by attr name "size".
+        ?sort=f:rank means to sort using a sorting key function: sort_by_rank.
+
     ?desc=: in descending order (only effective when ?sort= is present)
 
 """
-
-
-def get_node_function(name, functions):
-    if name in functions:
-        return functions[name]
-    else:
-        return getattr(momo.plugins.flask.nodes, name)
 
 
 @app.route('/node')
@@ -66,18 +63,19 @@ def node(path=None):
     root = app.config['MOMO_ROOT_NODE']
     funcs = app.config['MOMO_NODES_FUNCTIONS']
 
-    get_node_function('pre_node', funcs)(
+    funcs['pre_node'](
         path=path,
         root=root,
-        request=request)
+        request=request
+    )
 
-    node = get_node_function('process_node', funcs)(
+    node = funcs['process_node'](
         path=path,
         root=root,
         request=request,
     )
 
-    node = get_node_function('post_node', funcs)(
+    node = funcs['post_node'](
         path=path,
         root=root,
         request=request,
@@ -100,19 +98,19 @@ def search(term=None):
     root = app.config['MOMO_ROOT_NODE']
     funcs = app.config['MOMO_NODES_FUNCTIONS']
 
-    get_node_function('pre_search', funcs)(
+    funcs['pre_search'](
         root=root,
         term=term,
         request=request,
     )
 
-    nodes = get_node_function('process_search', funcs)(
+    nodes = funcs['process_search'](
         root=root,
         term=term,
         request=request,
     )
 
-    nodes = get_node_function('post_search', funcs)(
+    nodes = funcs['post_search'](
         root=root,
         term=term,
         request=request,
@@ -132,17 +130,17 @@ def index():
     root = app.config['MOMO_ROOT_NODE']
     funcs = app.config['MOMO_NODES_FUNCTIONS']
 
-    get_node_function('pre_index', funcs)(
+    funcs['pre_index'](
         root=root,
         request=request
     )
 
-    nodes = get_node_function('process_index', funcs)(
+    nodes = funcs['process_index'](
         root=root,
         request=request,
     )
 
-    nodes = get_node_function('post_index', funcs)(
+    nodes = funcs['post_index'](
         root=root,
         request=request,
         nodes=nodes,
@@ -160,16 +158,6 @@ def files(filename):
 @app.before_request
 def fix_trailing():
     """Always add a single trailing slash."""
-    rp = request.path
-    if rp != '/':
-        if not rp.endswith('/'):
-            return redirect(rp + '/')
-        elif rp.endswith('//'):
-            return redirect(rp.rstrip('/') + '/')
-
-
-@app.before_request
-def fix_slashes():
     rp = request.path
     if rp != '/':
         if not rp.endswith('/'):
