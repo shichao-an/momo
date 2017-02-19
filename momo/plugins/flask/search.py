@@ -46,7 +46,7 @@ def parse_search_term(term):
         lambdas = []
         for subterm in subterms:
             key, value = subterm.split('=')
-            if ':' in key:
+            if '.' in key:
                 prefix, name = key.split('.', 1)
                 if prefix in ('a', 'ax'):
                     lambdas.append(

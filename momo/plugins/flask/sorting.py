@@ -12,11 +12,11 @@ def sort_nodes_by_terms(terms, nodes, desc, functions):
     High-level function to sort by a sorting term. It does two things:
 
     1. Parse the sorting terms into a list of sorting key functions.
-    2. Apply sorting nodes in-place with the sorting key functions in turn.
+    2. Combine the sorting key functions into a single lambda function.
+    3. Apply sorting nodes in-place with the combined lambda function.
     """
     funcs = parse_sorting_terms(terms, functions)
-    for func in funcs:
-        sort_nodes(nodes, func, desc)
+    sort_nodes(nodes, lambda node: [func(node) for func in funcs], desc)
     return nodes
 
 
@@ -47,8 +47,8 @@ def parse_sorting_terms(terms, functions):
         elif prefix == 'n':
             res.append(lambda node, name=name: getattr(node, name))
         elif prefix == 'f':
-            func_name = 'sort_by_' + name
-            res.append(lambda node, name=func_name: functions[name])
+            name = 'sort_by_' + name
+            res.append(functions[name])
         else:
             raise SortingError('unknown sorting prefix')
     return res

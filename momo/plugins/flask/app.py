@@ -98,6 +98,7 @@ def search(term=None):
 
     root = app.config['MOMO_ROOT_NODE']
     funcs = app.config['MOMO_NODES_FUNCTIONS']
+    g.sorting_functions = app.config['MOMO_SORTING_FUNCTIONS']
 
     funcs['pre_search'](
         root=root,

@@ -53,6 +53,14 @@ def post_search(root, term, request, nodes):
     Function to post-process requests for search view. It is used to
     post-process the nodes.
     """
+    sorting_terms = request.args.getlist('sort')
+    desc = request.args.get('desc', default=False, type=str_to_bool)
+    sort_nodes_by_terms(
+        terms=sorting_terms,
+        nodes=nodes,
+        desc=desc,
+        functions=g.sorting_functions,
+    )
     return nodes
 
 
