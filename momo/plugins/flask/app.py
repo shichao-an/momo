@@ -2,6 +2,7 @@ import os
 
 from flask import (
     Flask,
+    g,
     redirect,
     render_template,
     request,
@@ -45,9 +46,9 @@ Query strings for all views:
     ?sort=: sort by a key, which can be prefixed with a: (attr), n: (node
     object attribute), and f: (a pre-defined function). For example:
 
-        ?sort=n:name means to sort by node name.
-        ?sort=a:size means to sort by attr name "size".
-        ?sort=f:rank means to sort using a sorting key function: sort_by_rank.
+        ?sort=n.name means to sort by node name.
+        ?sort=a.size means to sort by attr name "size".
+        ?sort=f.rank means to sort using a sorting key function: sort_by_rank.
 
     ?desc=: in descending order (only effective when ?sort= is present)
 
@@ -129,6 +130,7 @@ def index():
 
     root = app.config['MOMO_ROOT_NODE']
     funcs = app.config['MOMO_NODES_FUNCTIONS']
+    g.sorting_functions = app.config['MOMO_SORTING_FUNCTIONS']
 
     funcs['pre_index'](
         root=root,
@@ -159,8 +161,13 @@ def files(filename):
 def fix_trailing():
     """Always add a single trailing slash."""
     rp = request.path
+    # get query string
+    parts = request.full_path.rsplit('?', 1)
+    qs = ''
+    if len(parts) > 1:
+        qs = '?' + parts[-1]
     if rp != '/':
         if not rp.endswith('/'):
-            return redirect(rp + '/')
+            return redirect(rp + '/' + qs)
         elif rp.endswith('//'):
-            return redirect(rp.rstrip('/') + '/')
+            return redirect(rp.rstrip('/') + '/' + qs)

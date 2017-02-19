@@ -1,27 +1,38 @@
 # search backend
-import re
-
 
 from momo.plugins.flask.filters import get_attr
+from momo.plugins.flask.utils import str_to_bool
 from momo.utils import txt_type
-
-
-FALSE_STR_PATTREN = '^(0|false|False)$'
 
 
 class SearchError(Exception):
     pass
 
 
+def search_nodes_by_term(term, root):
+    """
+    High-level function to search node by a search term. It does three things:
+
+    1. Parse the search term into a list of lambda_lists.
+    2. Generate a search filter function.
+    3. Search the node with the search filter function.
+
+    """
+    parsed_term = parse_search_term(term)
+    search_filter = get_search_filter(parsed_term)
+    nodes = search_nodes(root, search_filter)
+    return nodes
+
+
 def parse_search_term(term):
     """
-    Parse a search term and returns list of lambdas lists.
+    Parse a search term and returns a list of lambdas lists.
 
     A search term is a path-like string seperated by slash (/). The slashes
     "AND" these path components together, meaning the results are those which
     satisfy all of them. Each component also comprises some sub-terms, in the
     form of "key1=value1&key2=value2", with each key having an optional
-    prefix, which can be "n[x]:" (a node object's attribute) or "a[x]:" (an
+    prefix, which can be "n[x]." (a node object's attribute) or "a[x]." (an
     attr name); the optional "x" suffix indicates whether to perform an exact
     match. Note that although the sub-terms are seperated by ampersand (&),
     they are "OR"ed together, meaning the results are those satisfy any of
@@ -36,7 +47,7 @@ def parse_search_term(term):
         for subterm in subterms:
             key, value = subterm.split('=')
             if ':' in key:
-                prefix, name = key.split(':', 1)
+                prefix, name = key.split('.', 1)
                 if prefix in ('a', 'ax'):
                     lambdas.append(
                         lambda node, name=name, value=value:
@@ -92,11 +103,7 @@ def match_bool(value, s):
     """
     Test whether a boolean value matches the given string s.
     """
-    if re.match(FALSE_STR_PATTREN, s):
-        s = False
-    else:
-        s = True
-    return value == s
+    return value == str_to_bool(s)
 
 
 def get_search_filter(lambda_lists):

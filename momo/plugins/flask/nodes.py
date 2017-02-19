@@ -1,8 +1,9 @@
 # functions to process nodes
 import os
 from flask import g
-from momo.plugins.flask.search import (
-    parse_search_term, search_nodes, get_search_filter)
+from momo.plugins.flask.search import search_nodes_by_term
+from momo.plugins.flask.sorting import sort_nodes_by_terms
+from momo.plugins.flask.utils import str_to_bool
 
 
 def pre_node(path, root, request):
@@ -41,9 +42,7 @@ def process_search(root, term, request):
     Function to process requests for search view. It returns nodes.
     """
     if term is not None:
-        parsed_term = parse_search_term(term)
-        search_filter = get_search_filter(parsed_term)
-        nodes = search_nodes(root, search_filter)
+        nodes = search_nodes_by_term(term, root)
     else:
         nodes = root.node_vals
     return nodes
@@ -54,7 +53,6 @@ def post_search(root, term, request, nodes):
     Function to post-process requests for search view. It is used to
     post-process the nodes.
     """
-    nodes = sort_nodes(nodes, func=lambda node: node.name)
     return nodes
 
 
@@ -78,6 +76,14 @@ def post_index(root, request, nodes):
     Function to post-process requests for index view. It is used to
     post-process the nodes.
     """
+    sorting_terms = request.args.getlist('sort')
+    desc = request.args.get('desc', default=False, type=str_to_bool)
+    sort_nodes_by_terms(
+        terms=sorting_terms,
+        nodes=nodes,
+        desc=desc,
+        functions=g.sorting_functions,
+    )
     return nodes
 
 
@@ -86,15 +92,3 @@ def node_from_path(path, root):
     for name in path.split('/'):
         node = node.elems[name]
     return node
-
-
-def sort_nodes(nodes, func, desc=False):
-    """
-    Sort nodes in-place.
-
-    :param nodes: list of nodes.
-    :param func: a function that returns an item as sorting key.
-    :param desc: whether in descending order.
-    """
-    nodes.sort(key=func, reverse=desc)
-    return nodes

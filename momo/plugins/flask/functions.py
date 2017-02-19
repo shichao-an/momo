@@ -25,7 +25,6 @@ def _paginate(page, total, per_page, record_name, display_msg):
         per_page=per_page,
         bs_version=3,
         show_single_page=False,
-        href='?page={}',
         record_name=record_name,
         display_msg=display_msg,
     )
@@ -33,4 +32,4 @@ def _paginate(page, total, per_page, record_name, display_msg):
 
 
 def get_page(request):
-    return request.args.get('page', type=int, default=1)
+    return request.args.get('page', default=1, type=int)
