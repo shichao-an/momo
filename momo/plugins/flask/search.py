@@ -32,11 +32,12 @@ def parse_search_term(term):
     "AND" these path components together, meaning the results are those which
     satisfy all of them. Each component also comprises some sub-terms, in the
     form of "key1=value1&key2=value2", with each key having an optional
-    prefix, which can be "n[x]." (a node object's attribute) or "a[x]." (an
+    prefix, which can be "n[x_]." (a node object's attribute) or "a[x]." (an
     attr name); the optional "x" suffix indicates whether to perform an exact
-    match. Note that although the sub-terms are seperated by ampersand (&),
-    they are "OR"ed together, meaning the results are those satisfy any of
-    them.
+    match and "_" suffix indicates that to match nodes without this node
+    object attribute or attr. Note that although the sub-terms are seperated
+    by ampersand (&), they are "OR"ed together, meaning the results are those
+    satisfy any of them.
 
     """
     res = []
@@ -48,17 +49,17 @@ def parse_search_term(term):
             key, value = subterm.split('=')
             if '.' in key:
                 prefix, name = key.split('.', 1)
-                if prefix in ('a', 'ax'):
+                if prefix in ('a', 'ax', 'a_'):
                     lambdas.append(
                         lambda node, name=name, value=value:
                         match_value(get_attr(node, name), value,
-                                    prefix == 'ax')
+                                    prefix == 'ax', prefix == 'a_')
                     )
-                elif prefix in ('n', 'nx'):
+                elif prefix in ('n', 'nx', 'n_'):
                     lambdas.append(
                         lambda node, name=name, value=value:
                         match_value(getattr(node, name), value,
-                                    prefix == 'nx')
+                                    prefix == 'nx', prefix == 'n_')
                     )
                 else:
                     raise SearchError('unknown prefix {}'.format(prefix))
@@ -68,7 +69,7 @@ def parse_search_term(term):
     return res
 
 
-def match_value(value, s, exact=False):
+def match_value(value, s, exact=False, without=False):
     """
     Test whether the value of a node attribute or attr content matches the
     given string s, which is retrieved from parsed term.
@@ -76,9 +77,17 @@ def match_value(value, s, exact=False):
     :param value: value of a node attribute or attr content.
     :param s: a string.
     :param exact: whether to do exact matches.
+    :param without: if True, match if value is None (meaning value does not
+                    exist in the node).
     """
     if value is None:
-        return False
+        if without:
+            return True
+        else:
+            return False
+    else:
+        if without:
+            return False
     s = txt_type(s)
     if isinstance(value, (txt_type, bool, int, float)):
         if isinstance(value, bool):
