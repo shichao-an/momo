@@ -12,6 +12,7 @@ from momo.plugins.flask.app import (
 from momo.plugins.flask.utils import get_public_functions
 import momo.plugins.flask.sorting
 import momo.plugins.flask.nodes
+from momo.plugins.flask.sorting import sort_nodes
 
 """
 app.config values of the current bucket:
@@ -35,8 +36,9 @@ MOMO_NODES_FUNCTIONS: a dictionary of names to default and user node functions
                       (see nodes.py).
 MOMO_SORTING_FUNCTIONS: a dictionary of names to default and user sorting key
                         functions (see sorting.py).
-MOMO_NODE_ATTRS_SORTED: whether to sort the node attrs by name.
-MOMO_NODE_NODES_SORTED: whether to sort the node's child nodes by name.
+MOMO_ATTRS_SORTING: the default sorting function of node attrs. It is
+                    registered as a template filter as "sort_attrs".
+MOMO_NODES_SORTING: the default sorting function of nodes.
 """
 
 
@@ -69,6 +71,32 @@ class Flask(Plugin):
             'pagination_node_per_page', 20)
         app.config['MOMO_PAGINATION_DISPLAY_MSG'] = self.configs.get(
             'pagination_display_msg', '{total} {record_name}s.')
+        app.config['MOMO_PAGINATION_NODE_PER_PAGE'] = self.configs.get(
+            'pagination_node_per_page', 20)
+
+        sort_attrs_asc = self.configs.get(
+            'sort_attrs_asc')
+        app.config['MOMO_ATTRS_SORTING'] = lambda attrs: attrs
+        if sort_attrs_asc is not None:
+            app.config['MOMO_ATTRS_SORTING'] = \
+                lambda attrs: sorted(
+                    attrs,
+                    key=lambda attr: attr.name,
+                    reverse=not sort_attrs_asc,
+                )
+        app.jinja_env.filters.update(
+            sort_attrs=app.config['MOMO_ATTRS_SORTING'])
+
+        sort_nodes_asc = self.configs.get(
+            'sort_nodes_asc')
+        app.config['MOMO_NODES_SORTING'] = lambda nodes: nodes
+        if sort_nodes_asc is not None:
+            app.config['MOMO_NODES_SORTING'] = \
+                lambda nodes: sort_nodes(
+                    nodes,
+                    func=lambda node: node.name,
+                    desc=not sort_nodes_asc,
+                )
 
         # load and register user-defined filter and global functions
         filters_f = os.path.join(flask_dir, 'filters.py')

@@ -113,6 +113,9 @@ def search(term=None):
         request=request,
     )
 
+    # apply default sorting
+    nodes = app.config['MOMO_NODES_SORTING'](nodes)
+
     nodes = funcs['post_search'](
         root=root,
         term=term,
@@ -136,13 +139,16 @@ def index():
 
     funcs['pre_index'](
         root=root,
-        request=request
+        request=request,
     )
 
     nodes = funcs['process_index'](
         root=root,
         request=request,
     )
+
+    # apply default sorting
+    nodes = app.config['MOMO_NODES_SORTING'](nodes)
 
     nodes = funcs['post_index'](
         root=root,

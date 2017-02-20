@@ -9,28 +9,9 @@ It first lists attributes of this node, then iterates over its child nodes.
 {% include "node_attrs.html" %}
 </div>
 
-{% set page = get_page(request) %}
-{% set per_page = config['MOMO_PAGINATION_NODE_PER_PAGE'] %}
-{% set total = g.nodes|length %}
-{% set pagination = paginate(
-    page=page,
-    total=total,
-    per_page=per_page,
-    config=config)
-%}
-{% set nodes = g.nodes[per_page * (page - 1):per_page * page] %}
+{% set nodes = g.nodes %}
 <div>
   {% if nodes %}
-    {{ pagination.info }}
-    {{ pagination.links }}
-
-    {% for node in nodes %}
-    <div>
-      {% include "node_header.html" %}
-      {% include "node_attrs.html" %}
-    </div>
-    {% endfor %}
-
-    {{ pagination.links }}
+    {% include "nodes_list.html" %}
   {% endif %}
 </div>
