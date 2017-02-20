@@ -5,7 +5,7 @@ Template for node attributes.
 #}
 {% if node.attr_vals %}
   <table class="table">
-  {% for attr in node.attr_vals|sort_attrs %}
+  {% for attr in node.attr_vals|sort_attrs|pin_attrs %}
     {% set template = 'attr_' + attr.name + '.html' %}
     {% include [template, 'attr.html'] %}
   {% endfor %}

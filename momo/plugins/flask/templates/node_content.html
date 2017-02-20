@@ -10,8 +10,8 @@ It first lists attributes of this node, then iterates over its child nodes.
 </div>
 
 {% set nodes = g.nodes %}
+{% if nodes %}
 <div>
-  {% if nodes %}
-    {% include "nodes_list.html" %}
-  {% endif %}
+  {% include "nodes_list.html" %}
 </div>
+{% endif %}

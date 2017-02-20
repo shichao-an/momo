@@ -39,6 +39,7 @@ MOMO_SORTING_FUNCTIONS: a dictionary of names to default and user sorting key
 MOMO_ATTRS_SORTING: the default sorting function of node attrs. It is
                     registered as a template filter as "sort_attrs".
 MOMO_NODES_SORTING: the default sorting function of nodes.
+MOMO_ATTRS_PINNING: the function to pin selected attrs to the top.
 """
 
 
@@ -74,8 +75,8 @@ class Flask(Plugin):
         app.config['MOMO_PAGINATION_NODE_PER_PAGE'] = self.configs.get(
             'pagination_node_per_page', 20)
 
-        sort_attrs_asc = self.configs.get(
-            'sort_attrs_asc')
+        # initialize default sorting function for attrs
+        sort_attrs_asc = self.configs.get('sort_attrs_asc')
         app.config['MOMO_ATTRS_SORTING'] = lambda attrs: attrs
         if sort_attrs_asc is not None:
             app.config['MOMO_ATTRS_SORTING'] = \
@@ -87,8 +88,8 @@ class Flask(Plugin):
         app.jinja_env.filters.update(
             sort_attrs=app.config['MOMO_ATTRS_SORTING'])
 
-        sort_nodes_asc = self.configs.get(
-            'sort_nodes_asc')
+        # initialize default sorting function for nodes
+        sort_nodes_asc = self.configs.get('sort_nodes_asc')
         app.config['MOMO_NODES_SORTING'] = lambda nodes: nodes
         if sort_nodes_asc is not None:
             app.config['MOMO_NODES_SORTING'] = \
@@ -97,6 +98,13 @@ class Flask(Plugin):
                     func=lambda node: node.name,
                     desc=not sort_nodes_asc,
                 )
+
+        # initialize pinning (reordering) function for attrs
+        pinned_attrs = self.configs.get('pinned_attrs')
+        app.config['MOMO_ATTRS_PINNING'] = \
+            self._get_pinning_function(pinned_attrs)
+        app.jinja_env.filters.update(
+            pin_attrs=app.config['MOMO_ATTRS_PINNING'])
 
         # load and register user-defined filter and global functions
         filters_f = os.path.join(flask_dir, 'filters.py')
@@ -121,6 +129,22 @@ class Flask(Plugin):
             filename=os.path.join(flask_dir, 'sorting.py'),
             prefix='sort_by_',
         )
+
+    def _get_pinning_function(self, pinned_attrs):
+        """Return a (template filter) function that reorders attrs based on
+        the given piined attrs."""
+
+        def pin_attrs(attrs):
+            pinned = []
+            others = []
+            for attr in attrs:
+                if attr.name in pinned_attrs:
+                    pinned.append(attr)
+                else:
+                    others.append(attr)
+            return pinned + others
+
+        return pin_attrs
 
     def _load_functions(self, module, filename, prefix=''):
         """Load functions from a module and a user file. The functions from
