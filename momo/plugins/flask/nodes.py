@@ -26,6 +26,7 @@ def post_node(path, root, request, node):
     Function to post-process requests for node view. It is used to
     post-process the node.
     """
+    g.nodes = sort_nodes_by_request(node.node_vals, request, g)
     return node
 
 

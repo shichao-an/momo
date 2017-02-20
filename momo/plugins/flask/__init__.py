@@ -35,6 +35,8 @@ MOMO_NODES_FUNCTIONS: a dictionary of names to default and user node functions
                       (see nodes.py).
 MOMO_SORTING_FUNCTIONS: a dictionary of names to default and user sorting key
                         functions (see sorting.py).
+MOMO_NODE_ATTRS_SORTED: whether to sort the node attrs by name.
+MOMO_NODE_NODES_SORTED: whether to sort the node's child nodes by name.
 """
 
 
