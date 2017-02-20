@@ -1,15 +1,29 @@
 # sorting and sorting key functions
 
 from momo.plugins.flask.filters import get_attr
+from momo.plugins.flask.utils import str_to_bool
 
 
 class SortingError(Exception):
     pass
 
 
+def sort_nodes_by_request(nodes, request, g):
+    """High-level function to sort nodes with a request object."""
+    sorting_terms = request.args.getlist('sort')
+    desc = request.args.get('desc', default=False, type=str_to_bool)
+    nodes = sort_nodes_by_terms(
+        terms=sorting_terms,
+        nodes=nodes,
+        desc=desc,
+        functions=g.sorting_functions,
+    )
+    return nodes
+
+
 def sort_nodes_by_terms(terms, nodes, desc, functions):
     """
-    High-level function to sort by a sorting term. It does two things:
+    High-level function to sort nodes by sorting term. It does two things:
 
     1. Parse the sorting terms into a list of sorting key functions.
     2. Combine the sorting key functions into a single lambda function.
@@ -54,21 +68,21 @@ def parse_sorting_terms(terms, functions):
     return res
 
 
-def sort_by_numnode(node):
+def sort_by_numnodes(node):
     """
-    Sort by number of node.
+    Sort by number of nodes.
     """
     return len(node.nodes)
 
 
-def sort_by_numattr(node):
+def sort_by_numattrs(node):
     """
     Sort by number of attrs.
     """
     return len(node.attrs)
 
 
-def sort_by_numelem(node):
+def sort_by_numelems(node):
     """
     Sort by number of elements.
     """

@@ -11,11 +11,11 @@ class SearchError(Exception):
 
 def search_nodes_by_term(term, root):
     """
-    High-level function to search node by a search term. It does three things:
+    High-level function to search nodes by search term. It does three things:
 
-    1. Parse the search term into a list of lambda_lists.
+    1. Parse the search term into a list of lambda lists.
     2. Generate a search filter function.
-    3. Search the node with the search filter function.
+    3. Search the nodes with the search filter function.
 
     """
     parsed_term = parse_search_term(term)

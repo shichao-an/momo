@@ -2,8 +2,7 @@
 import os
 from flask import g
 from momo.plugins.flask.search import search_nodes_by_term
-from momo.plugins.flask.sorting import sort_nodes_by_terms
-from momo.plugins.flask.utils import str_to_bool
+from momo.plugins.flask.sorting import sort_nodes_by_request
 
 
 def pre_node(path, root, request):
@@ -53,14 +52,7 @@ def post_search(root, term, request, nodes):
     Function to post-process requests for search view. It is used to
     post-process the nodes.
     """
-    sorting_terms = request.args.getlist('sort')
-    desc = request.args.get('desc', default=False, type=str_to_bool)
-    sort_nodes_by_terms(
-        terms=sorting_terms,
-        nodes=nodes,
-        desc=desc,
-        functions=g.sorting_functions,
-    )
+    nodes = sort_nodes_by_request(nodes, request, g)
     return nodes
 
 
@@ -84,14 +76,7 @@ def post_index(root, request, nodes):
     Function to post-process requests for index view. It is used to
     post-process the nodes.
     """
-    sorting_terms = request.args.getlist('sort')
-    desc = request.args.get('desc', default=False, type=str_to_bool)
-    sort_nodes_by_terms(
-        terms=sorting_terms,
-        nodes=nodes,
-        desc=desc,
-        functions=g.sorting_functions,
-    )
+    nodes = sort_nodes_by_request(nodes, request, g)
     return nodes
 
 
