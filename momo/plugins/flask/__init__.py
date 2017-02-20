@@ -75,6 +75,23 @@ class Flask(Plugin):
         app.config['MOMO_PAGINATION_NODE_PER_PAGE'] = self.configs.get(
             'pagination_node_per_page', 20)
 
+        # load and register user-defined filter and global functions
+        filters_f = os.path.join(flask_dir, 'filters.py')
+        if os.path.isfile(filters_f):
+            filters = imp.load_source('filters', filters_f)
+            app.jinja_env.filters.update(get_public_functions(filters))
+
+        functions_f = os.path.join(flask_dir, 'functions.py')
+        if os.path.isfile(functions_f):
+            functions = imp.load_source('functions', functions_f)
+            app.jinja_env.globals.update(get_public_functions(functions))
+
+        # load system and user-defined nodes functions
+        app.config['MOMO_NODES_FUNCTIONS'] = self._load_functions(
+            module=momo.plugins.flask.nodes,
+            filename=os.path.join(flask_dir, 'nodes.py'),
+        )
+
         # initialize default sorting function for attrs
         sort_attrs_asc = self.configs.get('sort_attrs_asc')
         app.config['MOMO_ATTRS_SORTING'] = lambda attrs: attrs
@@ -105,23 +122,6 @@ class Flask(Plugin):
             self._get_pinning_function(pinned_attrs)
         app.jinja_env.filters.update(
             pin_attrs=app.config['MOMO_ATTRS_PINNING'])
-
-        # load and register user-defined filter and global functions
-        filters_f = os.path.join(flask_dir, 'filters.py')
-        if os.path.isfile(filters_f):
-            filters = imp.load_source('filters', filters_f)
-            app.jinja_env.filters.update(get_public_functions(filters))
-
-        functions_f = os.path.join(flask_dir, 'functions.py')
-        if os.path.isfile(functions_f):
-            functions = imp.load_source('functions', functions_f)
-            app.jinja_env.globals.update(get_public_functions(functions))
-
-        # load system and user-defined nodes functions
-        app.config['MOMO_NODES_FUNCTIONS'] = self._load_functions(
-            module=momo.plugins.flask.nodes,
-            filename=os.path.join(flask_dir, 'nodes.py'),
-        )
 
         # load system and user-define sorting key functions
         app.config['MOMO_SORTING_FUNCTIONS'] = self._load_functions(

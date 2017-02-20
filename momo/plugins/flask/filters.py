@@ -39,3 +39,11 @@ def node_to_path(node):
 def split_path(path):
     """Split a path into a list of path components."""
     return path.split('/')
+
+
+def sort_attrs(attrs):
+    """Placeholder overriden by app.config['MOMO_ATTRS_SORTING']."""
+
+
+def pin_attrs(attrs):
+    """Placeholder overriden by app.config['MOMO_ATTRS_PINNING']."""
