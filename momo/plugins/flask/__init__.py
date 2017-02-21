@@ -117,7 +117,7 @@ class Flask(Plugin):
                 )
 
         # initialize pinning (reordering) function for attrs
-        pinned_attrs = self.configs.get('pinned_attrs')
+        pinned_attrs = self.configs.get('pinned_attrs') or []
         app.config['MOMO_ATTRS_PINNING'] = \
             self._get_pinning_function(pinned_attrs)
         app.jinja_env.filters.update(

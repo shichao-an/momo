@@ -2,7 +2,7 @@
 
 from momo.plugins.flask.filters import get_attr
 from momo.plugins.flask.utils import str_to_bool
-from momo.utils import txt_type
+from momo.utils import txt_type, bin_type
 
 
 class SearchError(Exception):
@@ -46,20 +46,28 @@ def parse_search_term(term):
         subterms = filter(lambda x: x.strip(), entity.split('&'))
         lambdas = []
         for subterm in subterms:
-            key, value = subterm.split('=')
+            key, s = subterm.split('=')
             if '.' in key:
                 prefix, name = key.split('.', 1)
                 if prefix in ('a', 'ax', 'a_'):
                     lambdas.append(
-                        lambda node, name=name, value=value:
-                        match_value(get_attr(node, name), value,
-                                    prefix == 'ax', prefix == 'a_')
+                        lambda node, name=name, s=s, prefix=prefix:
+                        match_value(
+                            value=get_attr(node, name),
+                            s=s,
+                            exact=prefix == 'ax',
+                            without=prefix == 'a_',
+                        )
                     )
                 elif prefix in ('n', 'nx', 'n_'):
                     lambdas.append(
-                        lambda node, name=name, value=value:
-                        match_value(getattr(node, name), value,
-                                    prefix == 'nx', prefix == 'n_')
+                        lambda node, name=name, s=s, prefix=prefix:
+                        match_value(
+                            value=getattr(node, name),
+                            s=s,
+                            exact=prefix == 'nx',
+                            without=prefix == 'n_',
+                        )
                     )
                 else:
                     raise SearchError('unknown prefix {}'.format(prefix))
@@ -89,7 +97,7 @@ def match_value(value, s, exact=False, without=False):
         if without:
             return False
     s = txt_type(s)
-    if isinstance(value, (txt_type, bool, int, float)):
+    if isinstance(value, (txt_type, bin_type, bool, int, float)):
         if isinstance(value, bool):
             return match_bool(value, s)
         else:

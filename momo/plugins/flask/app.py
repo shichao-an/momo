@@ -11,6 +11,8 @@ from flask import (
 from flask_bootstrap import Bootstrap
 from momo.plugins.flask import filters, functions
 from momo.plugins.flask.utils import get_public_functions
+from momo.plugins.flask.search import search_nodes_by_term
+from momo.plugins.flask.sorting import sort_nodes_by_request
 
 
 FLASK_DEFAULT_HOST = '127.0.0.1'
@@ -77,6 +79,13 @@ def node(path=None):
         request=request,
     )
 
+    g.nodes = node.node_vals
+
+    # apply default sorting
+    g.nodes = app.config['MOMO_NODES_SORTING'](g.nodes)
+    # sort nodes by request args
+    g.nodes = sort_nodes_by_request(g.nodes, request, g)
+
     node = funcs['post_node'](
         path=path,
         root=root,
@@ -115,6 +124,8 @@ def search(term=None):
 
     # apply default sorting
     nodes = app.config['MOMO_NODES_SORTING'](nodes)
+    # sort nodes by request args
+    nodes = sort_nodes_by_request(nodes, request, g)
 
     nodes = funcs['post_search'](
         root=root,
@@ -149,6 +160,8 @@ def index():
 
     # apply default sorting
     nodes = app.config['MOMO_NODES_SORTING'](nodes)
+    # sort nodes by request args
+    nodes = sort_nodes_by_request(nodes, request, g)
 
     nodes = funcs['post_index'](
         root=root,

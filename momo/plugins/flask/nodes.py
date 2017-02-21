@@ -26,7 +26,6 @@ def post_node(path, root, request, node):
     Function to post-process requests for node view. It is used to
     post-process the node.
     """
-    g.nodes = sort_nodes_by_request(node.node_vals, request, g)
     return node
 
 
@@ -53,7 +52,6 @@ def post_search(root, term, request, nodes):
     Function to post-process requests for search view. It is used to
     post-process the nodes.
     """
-    nodes = sort_nodes_by_request(nodes, request, g)
     return nodes
 
 
@@ -77,7 +75,6 @@ def post_index(root, request, nodes):
     Function to post-process requests for index view. It is used to
     post-process the nodes.
     """
-    nodes = sort_nodes_by_request(nodes, request, g)
     return nodes
 
 
