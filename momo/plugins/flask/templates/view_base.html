@@ -1,6 +1,4 @@
-{# node header
-
-Template for a list of nodes.
+{# view base
 
 #}
 {% set page = get_page(request) %}
@@ -17,12 +15,7 @@ Template for a list of nodes.
 {{ pagination.info }}
 {{ pagination.links }}
 
-{% for node in nodes %}
-  {% include "node_header.html" %}
-  {% if include_node_path %}
-    {% include "node_path.html" %}
-  {% endif %}
-  {% include "node_attrs.html" %}
-{% endfor %}
+{% block view_content %}
+{% endblock %}
 
 {{ pagination.links }}

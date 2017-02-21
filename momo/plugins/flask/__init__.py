@@ -40,6 +40,11 @@ MOMO_ATTRS_SORTING: the default sorting function of node attrs. It is
                     registered as a template filter as "sort_attrs".
 MOMO_NODES_SORTING: the default sorting function of nodes.
 MOMO_ATTRS_PINNING: the function to pin selected attrs to the top.
+MOMO_VIEW: default view, which can be "list" (default), "table", or any other
+           user-defined templates prefixed with "view_".
+MOMO_VIEW_INDEX: default view for the index view function.
+MOMO_VIEW_SEARCH: default view for the search view function.
+MOMO_VIEW_NODE: default view for the node view function.
 """
 
 
@@ -74,6 +79,10 @@ class Flask(Plugin):
             'pagination_display_msg', '{total} {record_name}s.')
         app.config['MOMO_PAGINATION_NODE_PER_PAGE'] = self.configs.get(
             'pagination_node_per_page', 20)
+        app.config['MOMO_VIEW'] = self.configs.get('view', 'list')
+        app.config['MOMO_VIEW_INDEX'] = self.configs.get('view_index')
+        app.config['MOMO_VIEW_SEARCH'] = self.configs.get('view_search')
+        app.config['MOMO_VIEW_NODE'] = self.configs.get('view_node')
 
         # load and register user-defined filter and global functions
         filters_f = os.path.join(flask_dir, 'filters.py')

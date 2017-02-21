@@ -11,7 +11,6 @@ from flask import (
 from flask_bootstrap import Bootstrap
 from momo.plugins.flask import filters, functions
 from momo.plugins.flask.utils import get_public_functions
-from momo.plugins.flask.search import search_nodes_by_term
 from momo.plugins.flask.sorting import sort_nodes_by_request
 
 
@@ -54,6 +53,8 @@ Query strings for all views:
 
     ?desc=: in descending order (only effective when ?sort= is present)
 
+    ?view=: view method for nodes, which can be "list" (default) and "table".
+
 """
 
 
@@ -66,6 +67,14 @@ def node(path=None):
     root = app.config['MOMO_ROOT_NODE']
     funcs = app.config['MOMO_NODES_FUNCTIONS']
     g.sorting_functions = app.config['MOMO_SORTING_FUNCTIONS']
+
+    g.path = path
+    g.title = os.path.basename(path)
+    g.view = (
+        request.args.get('view') or
+        app.config['MOMO_VIEW_NODE'] or
+        app.config['MOMO_VIEW']
+    )
 
     funcs['pre_node'](
         path=path,
@@ -110,6 +119,13 @@ def search(term=None):
     funcs = app.config['MOMO_NODES_FUNCTIONS']
     g.sorting_functions = app.config['MOMO_SORTING_FUNCTIONS']
 
+    g.title = 'Search'
+    g.view = (
+        request.args.get('view') or
+        app.config['MOMO_VIEW_SEARCH'] or
+        app.config['MOMO_VIEW']
+    )
+
     funcs['pre_search'](
         root=root,
         term=term,
@@ -147,6 +163,13 @@ def index():
     root = app.config['MOMO_ROOT_NODE']
     funcs = app.config['MOMO_NODES_FUNCTIONS']
     g.sorting_functions = app.config['MOMO_SORTING_FUNCTIONS']
+
+    g.title = 'Index'
+    g.view = (
+        request.args.get('view') or
+        app.config['MOMO_VIEW_INDEX'] or
+        app.config['MOMO_VIEW']
+    )
 
     funcs['pre_index'](
         root=root,

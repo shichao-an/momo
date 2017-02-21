@@ -6,7 +6,7 @@ Template attr_ATTRNAME.html is used if exists.
 <tr>
   <td class="momo-attr-name">{% include "attrname.html" %}</td>
   <td class="momo-attr-content">
-    {% set template = 'attrcontent_' + attr.name + '.html' %}
+    {% set template = 'attrcontent_' ~ attr.name ~ '.html' %}
     {% include [template, 'attrcontent.html'] %}
   </td>
 </tr>

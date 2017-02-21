@@ -1,0 +1,7 @@
+{# view
+
+Template to multiplex views for rendering nodes.
+
+#}
+{% set view_template = 'view_' ~ g.view ~ '.html' %}
+{% include [view_template, 'view_list.html'] %}

@@ -1,21 +1,18 @@
 # functions to process nodes
-import os
-from flask import g
 from momo.plugins.flask.search import search_nodes_by_term
-from momo.plugins.flask.sorting import sort_nodes_by_request
 
 
 def pre_node(path, root, request):
     """
     Function to pre-process requests for node view. It is used to update g.
     """
-    g.path = path
-    g.title = os.path.basename(path)
+    pass
 
 
 def process_node(path, root, request):
     """
-    Function to process requests for node view. It returns a node.
+    Function to process requests for node view. It generates and returns a
+    node.
     """
     node = node_from_path(path, root)
     return node
@@ -33,12 +30,13 @@ def pre_search(root, term, request):
     """
     Function to pre-process requests for search view. It is used to update g.
     """
-    g.title = 'Search'
+    pass
 
 
 def process_search(root, term, request):
     """
-    Function to process requests for search view. It returns nodes.
+    Function to process requests for search view. It generates and returns
+    nodes.
     """
     if term is not None:
         nodes = search_nodes_by_term(term, root)
@@ -59,12 +57,13 @@ def pre_index(root, request):
     """
     Function to pre-process requests for index view. It updates g.
     """
-    g.title = 'Index'
+    pass
 
 
 def process_index(root, request):
     """
-    Function to process requests for index view. It returns nodes.
+    Function to process requests for index view. It generates and returns
+    nodes.
     """
     nodes = root.node_vals
     return nodes

@@ -1,0 +1,24 @@
+{# table view
+
+View template for a table of nodes.
+
+#}
+{% extends "view_base.html" %}
+
+{% block view_content %}
+  <table class="table">
+    <tr>
+      <th>Name</th>
+    </tr>
+  {% for node in nodes %}
+    <tr>
+      <td>
+        <h2>
+        {% set node_path = node|node_to_path %}
+        <a href="/node/{{ node_path }}/">{{ node.name }}</a>
+        </h2>
+      </td>
+    </tr>
+  {% endfor %}
+  <table>
+{% endblock %}

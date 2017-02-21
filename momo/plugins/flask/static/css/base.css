@@ -8,3 +8,9 @@ h1[id]:before, h2[id]:before, h3[id]:before, h4[id]:before, h5[id]:before, h6[id
   margin-top: -75px;
   height: 75px;
 }
+
+td > h2 {
+  margin-top: 0;
+  margin-bottom: 0;
+  font-size: 1.5em;
+}
