@@ -1,0 +1,12 @@
+{# toc header
+
+Template for data-toc-text headers.
+
+#}
+<h2 data-toc-text="{{ node.name }}"
+{% if config.MOMO_HEADER_ID == 'slug' %}
+  id="{{ node.name | slugify }}"
+{% elif config.MOMO_HEADER_ID == true %}
+  id="{{ node.name }}"
+{% endif %}
+>

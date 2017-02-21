@@ -75,6 +75,8 @@ class Flask(Plugin):
             'pagination_index_per_page', 20)
         app.config['MOMO_PAGINATION_NODE_PER_PAGE'] = self.configs.get(
             'pagination_node_per_page', 20)
+        app.config['MOMO_PAGINATION_SEARCH_PER_PAGE'] = self.configs.get(
+            'pagination_search_per_page', 20)
         app.config['MOMO_PAGINATION_DISPLAY_MSG'] = self.configs.get(
             'pagination_display_msg', '{total} {record_name}s.')
         app.config['MOMO_PAGINATION_NODE_PER_PAGE'] = self.configs.get(

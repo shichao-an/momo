@@ -9,15 +9,19 @@ View template for a table of nodes.
   <table class="table">
     <tr>
       <th>Name</th>
+      <th># Attrs</th>
+      <th># Nodes</th>
     </tr>
   {% for node in nodes %}
     <tr>
       <td>
-        <h2>
+        {% include "toc_header.html" %}
         {% set node_path = node|node_to_path %}
         <a href="/node/{{ node_path }}/">{{ node.name }}</a>
         </h2>
       </td>
+      <td>{{ node.attrs|length }}</td>
+      <td>{{ node.nodes|length }}</td>
     </tr>
   {% endfor %}
   <table>
