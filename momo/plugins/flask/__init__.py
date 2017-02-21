@@ -45,6 +45,7 @@ MOMO_VIEW: default view, which can be "list" (default), "table", or any other
 MOMO_VIEW_INDEX: default view for the index view function.
 MOMO_VIEW_SEARCH: default view for the search view function.
 MOMO_VIEW_NODE: default view for the node view function.
+MOMO_ROOT_REVERSED: use reversed order for listing root nodes (latest first).
 """
 
 
@@ -81,10 +82,12 @@ class Flask(Plugin):
             'pagination_display_msg', '{total} {record_name}s.')
         app.config['MOMO_PAGINATION_NODE_PER_PAGE'] = self.configs.get(
             'pagination_node_per_page', 20)
+
         app.config['MOMO_VIEW'] = self.configs.get('view', 'list')
         app.config['MOMO_VIEW_INDEX'] = self.configs.get('view_index')
         app.config['MOMO_VIEW_SEARCH'] = self.configs.get('view_search')
         app.config['MOMO_VIEW_NODE'] = self.configs.get('view_node')
+        app.config['MOMO_ROOT_REVERSED'] = self.configs.get('root_reversed')
 
         # load and register user-defined filter and global functions
         filters_f = os.path.join(flask_dir, 'filters.py')

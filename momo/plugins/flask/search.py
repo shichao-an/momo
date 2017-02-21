@@ -9,6 +9,32 @@ class SearchError(Exception):
     pass
 
 
+def join_terms(*args):
+    res = []
+    for arg in args:
+        res.append(arg.strip('/'))
+    return '/'.join(res)
+
+
+def parse_q(s):
+    """Parse the value of query string q (?q=) into a search sub-term."""
+    if '=' not in s:
+        names = s.split()
+        term = '&'.join(map(lambda x: 'n.name=' + x, names))
+        return term
+    else:
+        subterms = s.split()
+        res = []
+        for subterm in subterms:
+            if '=' not in subterm:
+                res.append('n.name=' + subterm)
+            else:
+                res.append(subterm)
+        term = '&'.join(res)
+        return term
+
+
+
 def search_nodes_by_term(term, root):
     """
     High-level function to search nodes by search term. It does three things:

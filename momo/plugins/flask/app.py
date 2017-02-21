@@ -51,7 +51,7 @@ Query strings for all views:
         ?sort=a.size means to sort by attr name "size".
         ?sort=f.rank means to sort using a sorting key function: sort_by_rank.
 
-    ?desc=: in descending order (only effective when ?sort= is present)
+    ?desc=: in descending order.
 
     ?view=: view method for nodes, which can be "list" (default) and "table".
 
@@ -112,8 +112,9 @@ def search(term=None):
     """
     A search term is a path-like string. See parse_search_term for usage.
 
-    Query string is "?q=", which indicates a query that is used to match
-    content of all attrs of all nodes all filtered in the above steps.
+    Query string is "?q=". If '=' is not in the value of q, then the nodes are
+    filtered by names based on the value; if '=' is in the value, then it is
+    treated as a path component of a search term for parse_search_term.
     """
 
     root = app.config['MOMO_ROOT_NODE']
@@ -143,7 +144,8 @@ def search(term=None):
     # apply default sorting
     nodes = app.config['MOMO_NODES_SORTING'](nodes)
     # sort nodes by request args
-    nodes = sort_nodes_by_request(nodes, request, g)
+    default_reverse = app.config['MOMO_ROOT_REVERSED']
+    nodes = sort_nodes_by_request(nodes, request, g, default_reverse)
 
     nodes = funcs['post_search'](
         root=root,
@@ -187,7 +189,8 @@ def index():
     # apply default sorting
     nodes = app.config['MOMO_NODES_SORTING'](nodes)
     # sort nodes by request args
-    nodes = sort_nodes_by_request(nodes, request, g)
+    default_reverse = app.config['MOMO_ROOT_REVERSED']
+    nodes = sort_nodes_by_request(nodes, request, g, default_reverse)
 
     nodes = funcs['post_index'](
         root=root,

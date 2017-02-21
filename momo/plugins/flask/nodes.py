@@ -1,5 +1,9 @@
 # functions to process nodes
-from momo.plugins.flask.search import search_nodes_by_term
+from momo.plugins.flask.search import (
+    search_nodes_by_term,
+    parse_q,
+    join_terms
+)
 
 
 def pre_node(path, root, request):
@@ -38,7 +42,13 @@ def process_search(root, term, request):
     Function to process requests for search view. It generates and returns
     nodes.
     """
-    if term is not None:
+    q = request.args.get('q')
+    if q is not None:
+        if term is not None:
+            term = join_terms(term, parse_q(q))
+        else:
+            term = parse_q(q)
+    if term:
         nodes = search_nodes_by_term(term, root)
     else:
         nodes = root.node_vals
