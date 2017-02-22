@@ -34,7 +34,7 @@ def parse_q(s):
         return term
 
 
-def search_nodes_by_term(term, root):
+def search_nodes_by_term(term, root, case_insensitive):
     """
     High-level function to search nodes by search term. It does three things:
 
@@ -43,13 +43,13 @@ def search_nodes_by_term(term, root):
     3. Search the nodes with the search filter function.
 
     """
-    parsed_term = parse_search_term(term)
+    parsed_term = parse_search_term(term, case_insensitive)
     search_filter = get_search_filter(parsed_term)
     nodes = search_nodes(root, search_filter)
     return nodes
 
 
-def parse_search_term(term):
+def parse_search_term(term, case_insensitive=False):
     """
     Parse a search term and returns a list of lambdas lists.
 
@@ -82,6 +82,7 @@ def parse_search_term(term):
                             s=s,
                             exact=prefix == 'ax',
                             without=prefix == 'a_',
+                            case_insensitive=case_insensitive,
                         )
                     )
                 elif prefix in ('n', 'nx', 'n_'):
@@ -92,6 +93,7 @@ def parse_search_term(term):
                             s=s,
                             exact=prefix == 'nx',
                             without=prefix == 'n_',
+                            case_insensitive=case_insensitive,
                         )
                     )
                 else:
@@ -103,7 +105,7 @@ def parse_search_term(term):
     return res
 
 
-def match_value(value, s, exact=False, without=False):
+def match_value(value, s, exact=False, without=False, case_insensitive=False):
     """
     Test whether the value of a node attribute or attr content matches the
     given string s, which is retrieved from parsed term.
@@ -114,6 +116,13 @@ def match_value(value, s, exact=False, without=False):
     :param without: if True, match if value is None (meaning value does not
                     exist in the node).
     """
+
+    def with_case(a):
+        if case_insensitive:
+            return a.lower()
+        else:
+            return a
+
     if value is None:
         if without:
             return True
@@ -128,16 +137,16 @@ def match_value(value, s, exact=False, without=False):
             return match_bool(value, s)
         else:
             if exact:
-                return txt_type(value) == s
+                return with_case(txt_type(value)) == (s)
             else:
-                return s in txt_type(value)
+                return with_case(s) in with_case(txt_type(value))
     else:
-        txt_values = map(txt_type, value)
+        txt_values = map(with_case, map(txt_type, value))
         if exact:
-            return s in txt_values
+            return with_case(s) in txt_values
         else:
             for txt_value in txt_values:
-                if s in txt_value:
+                if with_case(s) in with_case(txt_value):
                     return True
             return False
 

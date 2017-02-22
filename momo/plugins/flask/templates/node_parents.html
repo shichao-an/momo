@@ -3,7 +3,7 @@
 Template for rendering node parents.
 #}
 {% set parents = node|get_parents %}
-{% if parents %}
+{% if parents and parents|length > 1 %}
 <tr>
   <td>parents</td>
   <td>
@@ -11,7 +11,7 @@ Template for rendering node parents.
     <a href="/node/{{ parent|node_to_path }}/">{{ parent.name }}</a>
     {%- if not loop.last -%}
       ,
-    {%- endif %}
+    {% endif %}
   {%- endfor %}
   </td>
 </tr>

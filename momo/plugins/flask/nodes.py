@@ -53,7 +53,7 @@ def process_search(root, term, request):
     g.permalink = '/search/'
     if term:
         g.permalink += term
-        nodes = search_nodes_by_term(term, root)
+        nodes = search_nodes_by_term(term, root, g.case_insensitive)
     else:
         nodes = root.node_vals
     return nodes
