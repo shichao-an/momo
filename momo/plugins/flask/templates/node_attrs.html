@@ -3,9 +3,10 @@
 Template for node attributes.
 
 #}
-{% if node.attr_vals %}
+{% set attr_vals = node.attr_vals + node|get_virtual_attrs %}
+{% if attr_vals %}
   <table class="table">
-  {% for attr in node.attr_vals|sort_attrs|pin_attrs %}
+  {% for attr in attr_vals|sort_attrs|pin_attrs %}
     {% set template = 'attr_' ~ attr.name ~ '.html' %}
     {% include [template, 'attr.html'] %}
   {% endfor %}
