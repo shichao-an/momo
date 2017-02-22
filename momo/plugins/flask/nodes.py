@@ -1,4 +1,5 @@
 # functions to process nodes
+from flask import g
 from momo.plugins.flask.search import (
     search_nodes_by_term,
     parse_q,
@@ -48,7 +49,9 @@ def process_search(root, term, request):
             term = join_terms(term, parse_q(q))
         else:
             term = parse_q(q)
+    g.permalink = '/search/'
     if term:
+        g.permalink += term
         nodes = search_nodes_by_term(term, root)
     else:
         nodes = root.node_vals

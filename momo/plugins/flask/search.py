@@ -34,7 +34,6 @@ def parse_q(s):
         return term
 
 
-
 def search_nodes_by_term(term, root):
     """
     High-level function to search nodes by search term. It does three things:
@@ -99,7 +98,8 @@ def parse_search_term(term):
                     raise SearchError('unknown prefix {}'.format(prefix))
             else:
                 raise SearchError('no prefix specified')
-        res.append(lambdas)
+        if lambdas:
+            res.append(lambdas)
     return res
 
 

@@ -89,19 +89,19 @@ def node(path=None):
         request=request,
     )
 
-    g.nodes = node.node_vals
-
-    # apply default sorting
-    g.nodes = app.config['MOMO_NODES_SORTING'](g.nodes)
-    # sort nodes by request args
-    g.nodes = sort_nodes_by_request(g.nodes, request, g)
-
     node = funcs['post_node'](
         path=path,
         root=root,
         request=request,
         node=node,
     )
+
+    g.nodes = node.node_vals
+
+    # apply default sorting
+    g.nodes = app.config['MOMO_NODES_SORTING'](g.nodes)
+    # sort nodes by request args
+    g.nodes = sort_nodes_by_request(g.nodes, request, g)
 
     return render_template('node.html', node=node)
 
@@ -141,18 +141,18 @@ def search(term=None):
         request=request,
     )
 
-    # apply default sorting
-    nodes = app.config['MOMO_NODES_SORTING'](nodes)
-    # sort nodes by request args
-    default_reverse = app.config['MOMO_ROOT_REVERSED']
-    nodes = sort_nodes_by_request(nodes, request, g, default_reverse)
-
     nodes = funcs['post_search'](
         root=root,
         term=term,
         request=request,
         nodes=nodes,
     )
+
+    # apply default sorting
+    nodes = app.config['MOMO_NODES_SORTING'](nodes)
+    # sort nodes by request args
+    default_reverse = app.config['MOMO_ROOT_REVERSED']
+    nodes = sort_nodes_by_request(nodes, request, g, default_reverse)
 
     return render_template('search.html', nodes=nodes)
 
@@ -186,17 +186,17 @@ def index():
         request=request,
     )
 
-    # apply default sorting
-    nodes = app.config['MOMO_NODES_SORTING'](nodes)
-    # sort nodes by request args
-    default_reverse = app.config['MOMO_ROOT_REVERSED']
-    nodes = sort_nodes_by_request(nodes, request, g, default_reverse)
-
     nodes = funcs['post_index'](
         root=root,
         request=request,
         nodes=nodes,
     )
+
+    # apply default sorting
+    nodes = app.config['MOMO_NODES_SORTING'](nodes)
+    # sort nodes by request args
+    default_reverse = app.config['MOMO_ROOT_REVERSED']
+    nodes = sort_nodes_by_request(nodes, request, g, default_reverse)
 
     return render_template('index.html', nodes=nodes)
 
