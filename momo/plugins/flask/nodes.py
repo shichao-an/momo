@@ -1,4 +1,5 @@
 # functions to process nodes
+from collections import OrderedDict
 from flask import g
 from momo.plugins.flask.search import (
     search_nodes_by_term,
@@ -95,3 +96,26 @@ def node_from_path(path, root):
     for name in path.split('/'):
         node = node.elems[name]
     return node
+
+
+def merge_nodes(nodes):
+    """
+    Merge nodes to deduplicate same-name nodes and add a "parents"
+    attribute to each node, which is a list of Node objects.
+    """
+
+    def add_parent(unique_node, parent):
+        if getattr(unique_node, 'parents', None):
+            if parent.name not in unique_node.parents:
+                unique_node.parents[parent.name] = parent
+        else:
+            unique_node.parents = {parent.name: parent}
+
+    names = OrderedDict()
+    for node in nodes:
+        if node.name not in names:
+            names[node.name] = node
+            add_parent(names[node.name], node.parent)
+        else:
+            add_parent(names[node.name], node.parent)
+    return names.values()

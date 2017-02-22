@@ -8,9 +8,6 @@ View template for a list of nodes.
 {% block view_content %}
   {% for node in nodes %}
     {% include "node_header.html" %}
-    {% if include_node_path %}
-      {% include "node_path.html" %}
-    {% endif %}
     {% include "node_attrs.html" %}
   {% endfor %}
 {% endblock %}

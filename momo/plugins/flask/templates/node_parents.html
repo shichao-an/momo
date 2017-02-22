@@ -1,0 +1,18 @@
+{# node parents
+
+Template for rendering node parents.
+#}
+{% set parents = node|get_parents %}
+{% if parents %}
+<tr>
+  <td>parents</td>
+  <td>
+  {%- for parent in parents -%}
+    <a href="/node/{{ parent|node_to_path }}/">{{ parent.name }}</a>
+    {%- if not loop.last -%}
+      ,
+    {%- endif %}
+  {%- endfor %}
+  </td>
+</tr>
+{% endif %}

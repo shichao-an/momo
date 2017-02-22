@@ -46,6 +46,8 @@ MOMO_VIEW_INDEX: default view for the index view function.
 MOMO_VIEW_SEARCH: default view for the search view function.
 MOMO_VIEW_NODE: default view for the node view function.
 MOMO_ROOT_REVERSED: use reversed order for listing root nodes (latest first).
+MOMO_MERGE_NODES: whether to merge nodes with the same name (search view
+                  only).
 """
 
 
@@ -88,6 +90,7 @@ class Flask(Plugin):
         app.config['MOMO_VIEW_SEARCH'] = self.configs.get('view_search')
         app.config['MOMO_VIEW_NODE'] = self.configs.get('view_node')
         app.config['MOMO_ROOT_REVERSED'] = self.configs.get('root_reversed')
+        app.config['MOMO_MERGE_NODES'] = self.configs.get('merge_nodes')
 
         # load and register user-defined filter and global functions
         filters_f = os.path.join(flask_dir, 'filters.py')

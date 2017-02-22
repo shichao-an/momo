@@ -12,13 +12,10 @@ def get_attr(node, attrname, default=None):
     return default
 
 
-def get_virtual_attrs(node):
-    data = getattr(node, 'data', None)
-    if data is not None:
-        attrs = data.get('attrs')
-        if attrs is not None:
-            return attrs.vals()
-    return []
+def get_parents(node):
+    parents = getattr(node, 'parents', None)
+    if parents:
+        return parents.values()
 
 
 def slugify(s):

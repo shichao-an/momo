@@ -12,6 +12,7 @@ from flask_bootstrap import Bootstrap
 from momo.plugins.flask import filters, functions
 from momo.plugins.flask.utils import get_public_functions
 from momo.plugins.flask.sorting import sort_nodes_by_request
+from momo.plugins.flask.nodes import merge_nodes
 
 
 FLASK_DEFAULT_HOST = '127.0.0.1'
@@ -140,6 +141,9 @@ def search(term=None):
         term=term,
         request=request,
     )
+
+    if app.config['MOMO_MERGE_NODES']:
+        nodes = merge_nodes(nodes)
 
     nodes = funcs['post_search'](
         root=root,
