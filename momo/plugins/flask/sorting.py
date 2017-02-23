@@ -8,9 +8,10 @@ class SortingError(Exception):
     pass
 
 
-def sort_nodes_by_request(nodes, request, g, default_reverse=False):
+def sort_nodes_by_request(nodes, request, g, default_reverse=False,
+                          default_terms=None):
     """High-level function to sort nodes with a request object."""
-    sorting_terms = request.args.getlist('sort')
+    sorting_terms = request.args.getlist('sort') or default_terms
     desc = request.args.get('desc', default=False, type=str_to_bool)
     if not sorting_terms:
         if desc:
@@ -65,7 +66,7 @@ def parse_sorting_terms(terms, functions):
         if prefix == 'a':
             res.append(lambda node, name=name: get_attr(node, name))
         elif prefix == 'n':
-            res.append(lambda node, name=name: getattr(node, name))
+            res.append(lambda node, name=name: getattr(node, name, None))
         elif prefix == 'f':
             name = 'sort_by_' + name
             res.append(functions[name])

@@ -3,18 +3,17 @@
 Template for rendering linkable nodes in a path.
 
 #}
-<div>
-  <small>/
-  {%- for name in node|node_to_path|split_path -%}
-    {%- if node_path -%}
-      {% set node_path = node_path ~ "/" ~ name %}
-    {%- else -%}
-      {% set node_path = name %}
-    {%- endif -%}
-    <a href="/node/{{ node_path }}/">{{ name }}</a>
-    {%- if not loop.last -%}
-      /
-    {%- endif %}
-  {%- endfor %}
-  </small>
+<div class="momo-node-path">
+/
+{%- for name in node|node_to_path|split_path -%}
+  {%- if node_path -%}
+    {% set node_path = node_path ~ "/" ~ name %}
+  {%- else -%}
+    {% set node_path = name %}
+  {%- endif -%}
+  <a href="/node/{{ node_path }}/">{{ name }}</a>
+  {%- if not loop.last -%}
+    /
+  {%- endif %}
+{%- endfor %}
 </div>

@@ -9,7 +9,7 @@ from momo.plugins.flask.app import (
     FLASK_DEFAULT_PORT,
     FLASK_DEFAULT_DEBUG
 )
-from momo.plugins.flask.utils import get_public_functions
+from momo.plugins.flask.utils import get_public_functions, to_list
 import momo.plugins.flask.sorting
 import momo.plugins.flask.nodes
 from momo.plugins.flask.sorting import sort_nodes
@@ -49,6 +49,10 @@ MOMO_ROOT_REVERSED: use reversed order for listing root nodes (latest first).
 MOMO_MERGE_NODES: whether to merge nodes with the same name (search view
                   only).
 MOMO_CASE_INSENSITIVE: whether to use case insensitive matching for search.
+MOMO_INDEX_SORTING_TERMS: the default sorting term for index view.
+MOMO_SEARCH_SORTING_TERMS: the default sorting term for search view.
+MOMO_NODE_SORTING_TERMS: the default sorting term for node view.
+MOMO_HOLDER_SIZE: holder (image placeholder) size (in the form of NxM).
 """
 
 
@@ -65,6 +69,7 @@ class Flask(Plugin):
         self._reset_loader(user_template_folder)
 
         # configuration values
+        # TODO: refactor these code
         app.config['MOMO_ROOT_NODE'] = self.settings.bucket.root
         app.config['MOMO_FILES_FOLDER'] = os.path.join(flask_dir, 'files')
         app.config['MOMO_SITENAME'] = (
@@ -94,6 +99,18 @@ class Flask(Plugin):
         app.config['MOMO_MERGE_NODES'] = self.configs.get('merge_nodes')
         app.config['MOMO_CASE_INSENSITIVE'] = self.configs.get(
             'case_insensitive', False)
+        app.config['MOMO_HOLDER_SIZE'] = self.configs.get(
+            'holder_size', '125x125')
+
+        index_sorting_terms = self.configs.get('index_sorting_terms')
+        app.config['MOMO_INDEX_SORTING_TERMS'] = (
+            to_list(index_sorting_terms) if index_sorting_terms else None)
+        search_sorting_terms = self.configs.get('search_sorting_terms')
+        app.config['MOMO_SEARCH_SORTING_TERMS'] = (
+            to_list(search_sorting_terms) if search_sorting_terms else None)
+        node_sorting_terms = self.configs.get('node_sorting_terms')
+        app.config['MOMO_NODE_SORTING_TERMS'] = (
+            to_list(node_sorting_terms) if node_sorting_terms else None)
 
         # load and register user-defined filter and global functions
         filters_f = os.path.join(flask_dir, 'filters.py')

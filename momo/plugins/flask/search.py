@@ -89,7 +89,7 @@ def parse_search_term(term, case_insensitive=False):
                     lambdas.append(
                         lambda node, name=name, s=s, prefix=prefix:
                         match_value(
-                            value=getattr(node, name),
+                            value=getattr(node, name, None),
                             s=s,
                             exact=prefix == 'nx',
                             without=prefix == 'n_',

@@ -1,5 +1,6 @@
 import re
 from inspect import getmembers, isfunction
+from momo.utils import txt_type, bin_type
 
 
 FALSE_STR_PATTREN = '^(0|false|False)$'
@@ -18,3 +19,12 @@ def str_to_bool(s):
     if re.match(FALSE_STR_PATTREN, s):
         return False
     return True
+
+
+def to_list(value, sep=','):
+    if isinstance(value, list):
+        return value
+    elif isinstance(value, (txt_type, bin_type)):
+        return value.split(',')
+    else:
+        return [value]

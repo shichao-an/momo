@@ -1,0 +1,15 @@
+{# holder
+
+Template for image placeholder based on holder.js.
+
+#}
+{% if holder_size %}
+  {% set holder_size = holder_size %}
+{% else %}
+  {% set holder_size = config.MOMO_HOLDER_SIZE %}
+{% endif %}
+<img src="holder.js/{{ holder_size }}"
+{% if holder_title %}
+  title="{{ holder_title }}"
+{% endif %}
+>

@@ -102,7 +102,9 @@ def node(path=None):
     # apply default sorting
     g.nodes = app.config['MOMO_NODES_SORTING'](g.nodes)
     # sort nodes by request args
-    g.nodes = sort_nodes_by_request(g.nodes, request, g)
+    default_terms = app.config['MOMO_INDEX_SORTING_TERMS']
+    g.nodes = sort_nodes_by_request(
+        g.nodes, request, g, default_terms=default_terms)
 
     return render_template('node.html', node=node)
 
@@ -157,7 +159,9 @@ def search(term=None):
     nodes = app.config['MOMO_NODES_SORTING'](nodes)
     # sort nodes by request args
     default_reverse = app.config['MOMO_ROOT_REVERSED']
-    nodes = sort_nodes_by_request(nodes, request, g, default_reverse)
+    default_terms = app.config['MOMO_SEARCH_SORTING_TERMS']
+    nodes = sort_nodes_by_request(
+        nodes, request, g, default_reverse, default_terms)
 
     return render_template('search.html', nodes=nodes)
 
@@ -201,7 +205,9 @@ def index():
     nodes = app.config['MOMO_NODES_SORTING'](nodes)
     # sort nodes by request args
     default_reverse = app.config['MOMO_ROOT_REVERSED']
-    nodes = sort_nodes_by_request(nodes, request, g, default_reverse)
+    default_terms = app.config['MOMO_INDEX_SORTING_TERMS']
+    nodes = sort_nodes_by_request(
+        nodes, request, g, default_reverse, default_terms)
 
     return render_template('index.html', nodes=nodes)
 

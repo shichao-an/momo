@@ -1,5 +1,6 @@
 body {
   padding-top: 50px;
+  color: rgba(75,75,75,0.85);
 }
 
 h1[id]:before, h2[id]:before, h3[id]:before, h4[id]:before, h5[id]:before, h6[id]:before {
@@ -17,4 +18,11 @@ td > h2 {
 
 .pagination-page-info {
   margin-top: 20px;
+}
+
+div.col-md-9 img {
+  max-width: 100%;
+  border-radius: 2px;
+  border: 1px solid #e7e7e7;
+  padding: 2px;
 }
