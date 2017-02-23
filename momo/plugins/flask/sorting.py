@@ -14,9 +14,9 @@ def sort_nodes_by_request(nodes, request, g, default_reverse=False,
     sorting_terms = request.args.getlist('sort') or default_terms
     desc = request.args.get('desc', default=False, type=str_to_bool)
     if not sorting_terms:
-        if desc:
+        if default_reverse:
             nodes.reverse()
-        elif default_reverse:
+        if desc:
             nodes.reverse()
     else:
         nodes = sort_nodes_by_terms(

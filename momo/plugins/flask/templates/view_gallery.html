@@ -9,18 +9,7 @@ View template for a gallery of nodes.
   <div class="momo-gallery">
   {% for node in nodes %}
     <div class="momo-gallery-node">
-    {% set node_image = node|attr_image %}
-    {% if node_image %}
-      <a href="/node/{{ node|node_to_path }}" title="{{ node.name}} ">
-        <img src="{{ node_image }}" alt="{{ node.name }}">
-      </a>
-    {% else %}
-      {% with holder_title = node.name %}
-        <a href="/node/{{ node|node_to_path }}/" title="{{ node.name }}">
-          {% include "holder.html" %}
-        </a>
-      {% endwith %}
-    {% endif %}
+      {% include "node_image.html" %}
     </div>
   {% endfor %}
   </div>
