@@ -5,7 +5,7 @@ Template for node attributes.
 #}
 {% set attr_vals = node.attr_vals %}
 {% if attr_vals %}
-  <table class="table">
+  <table class="table momo-attr-table">
   {% if include_node_parents %}
     {% include "node_parents.html" %}
   {% endif %}

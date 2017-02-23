@@ -11,6 +11,8 @@ div.momo-gallery-node img {
 
 .momo-node-path {
   margin: 1em 0;
-  border: 0;
-  padding: 0;
+}
+
+table.momo-attr-table td {
+  vertical-align: middle !important;
 }
