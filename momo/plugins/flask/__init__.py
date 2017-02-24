@@ -26,6 +26,8 @@ MOMO_HEADER_ID: what to show in the header id attribute of the node, which can
                 text), or true (use the header text, which may break browser
                 javascripts if containing invalid characters).
 MOMO_TOC_HEADER: whether to include main header in the TOC (defaults to true).
+MOMO_HEADER_NODE_COUNT: whether to include node count in the node header.
+MOMO_HEADER_NODE_COUNT_LEVELS: the node levels to which the count is included.
 MOMO_INDEX_TABLE: whether to use table format in the index page (defaults to
                   false).
 MOMO_PAGINATION_RECORD_NAME: record name for pagination (defaults to 'node').
@@ -78,6 +80,12 @@ class Flask(Plugin):
             self.configs.get('sitename') or bucket_name.capitalize())
         app.config['MOMO_HEADER_ID'] = self.configs.get('header_id', False)
         app.config['MOMO_TOC_HEADER'] = self.configs.get('toc_title', True)
+        app.config['MOMO_HEADER_NODE_COUNT'] = self.configs.get(
+            'header_node_count', False)
+        header_node_count_levels = self.configs.get('header_node_count_levels')
+        app.config['MOMO_HEADER_NODE_COUNT_LEVELS'] = (
+            to_list(header_node_count_levels)
+            if header_node_count_levels else None)
         app.config['MOMO_INDEX_TABLE'] = self.configs.get('index_table', False)
 
         app.config['MOMO_PAGINATION_RECORD_NAME'] = self.configs.get(

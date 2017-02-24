@@ -1,0 +1,8 @@
+{# node header count
+
+Template for node count in the node header.
+
+#}
+{% if config['MOMO_HEADER_NODE_COUNT'] and node.level in config['MOMO_HEADER_NODE_COUNT_LEVELS'] %}
+<small>({{ node.node_vals|length }})</small>
+{% endif %}
