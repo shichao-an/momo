@@ -45,8 +45,8 @@ def process_search(root, term, request):
     nodes.
     """
     q = request.args.get('q')
-    if q is not None:
-        if term is not None:
+    if q:
+        if term:
             term = join_terms(term, parse_q(q))
         else:
             term = parse_q(q)

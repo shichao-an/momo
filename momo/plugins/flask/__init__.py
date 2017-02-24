@@ -1,5 +1,6 @@
 import imp
 import os
+import sys
 import jinja2
 from momo.plugins.base import Plugin
 from momo.plugins.flask.app import (
@@ -63,6 +64,7 @@ class Flask(Plugin):
             'flask', {}).get(bucket_name, {})
         flask_dir = os.path.join(
             self.settings.settings_dir, 'flask', bucket_name)
+        sys.path.append(flask_dir)
 
         # register user template folder
         user_template_folder = os.path.join(flask_dir, 'templates')
