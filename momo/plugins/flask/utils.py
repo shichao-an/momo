@@ -28,3 +28,7 @@ def to_list(value, sep=','):
         return value.split(',')
     else:
         return [value]
+
+
+def split_by(s, sep=','):
+    return [item.strip() for item in filter(lambda x: x.strip(), s.split(sep))]

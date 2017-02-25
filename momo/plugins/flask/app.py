@@ -132,6 +132,7 @@ def search(term=None):
     )
     g.per_page = app.config['MOMO_PAGINATION_SEARCH_PER_PAGE']
     g.case_insensitive = app.config['MOMO_CASE_INSENSITIVE']
+    g.string_separator = app.config['MOMO_STRING_SEPARATOR']
 
     funcs['pre_search'](
         root=root,

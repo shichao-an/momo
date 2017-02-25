@@ -1,7 +1,7 @@
 # search backend
 
 from momo.plugins.flask.filters import get_attr
-from momo.plugins.flask.utils import str_to_bool
+from momo.plugins.flask.utils import str_to_bool, split_by
 from momo.utils import txt_type, bin_type
 
 
@@ -34,7 +34,7 @@ def parse_q(s):
         return term
 
 
-def search_nodes_by_term(term, root, case_insensitive):
+def search_nodes_by_term(term, root, case_insensitive, sep):
     """
     High-level function to search nodes by search term. It does three things:
 
@@ -43,13 +43,13 @@ def search_nodes_by_term(term, root, case_insensitive):
     3. Search the nodes with the search filter function.
 
     """
-    parsed_term = parse_search_term(term, case_insensitive)
+    parsed_term = parse_search_term(term, case_insensitive, sep)
     search_filter = get_search_filter(parsed_term)
     nodes = search_nodes(root, search_filter)
     return nodes
 
 
-def parse_search_term(term, case_insensitive=False):
+def parse_search_term(term, case_insensitive=False, sep=None):
     """
     Parse a search term and returns a list of lambdas lists.
 
@@ -83,6 +83,7 @@ def parse_search_term(term, case_insensitive=False):
                             exact=prefix == 'ax',
                             without=prefix == 'a_',
                             case_insensitive=case_insensitive,
+                            sep=sep,
                         )
                     )
                 elif prefix in ('n', 'nx', 'n_'):
@@ -94,6 +95,7 @@ def parse_search_term(term, case_insensitive=False):
                             exact=prefix == 'nx',
                             without=prefix == 'n_',
                             case_insensitive=case_insensitive,
+                            sep=sep,
                         )
                     )
                 else:
@@ -105,7 +107,8 @@ def parse_search_term(term, case_insensitive=False):
     return res
 
 
-def match_value(value, s, exact=False, without=False, case_insensitive=False):
+def match_value(value, s, exact=False, without=False, case_insensitive=False,
+                sep=None):
     """
     Test whether the value of a node attribute or attr content matches the
     given string s, which is retrieved from parsed term.
@@ -115,6 +118,9 @@ def match_value(value, s, exact=False, without=False, case_insensitive=False):
     :param exact: whether to do exact matches.
     :param without: if True, match if value is None (meaning value does not
                     exist in the node).
+    :param case_insensitive: whether do case-insensitive matching.
+    :param sep: if not None, the separator is used to treat a string as a list
+                separated by this separator.
     """
 
     def with_case(a):
@@ -122,6 +128,16 @@ def match_value(value, s, exact=False, without=False, case_insensitive=False):
             return a.lower()
         else:
             return a
+
+    def match_list(s, values):
+        txt_values = map(with_case, map(txt_type, values))
+        if exact:
+            return with_case(s) in txt_values
+        else:
+            for txt_value in txt_values:
+                if with_case(s) in with_case(txt_value):
+                    return True
+            return False
 
     if value is None:
         if without:
@@ -131,24 +147,24 @@ def match_value(value, s, exact=False, without=False, case_insensitive=False):
     else:
         if without:
             return False
+
     s = txt_type(s)
     if isinstance(value, (txt_type, bin_type, bool, int, float)):
         if isinstance(value, bool):
             return match_bool(value, s)
         else:
-            if exact:
-                return with_case(txt_type(value)) == (s)
+            if (sep is not None and
+                    isinstance(value, (txt_type, bin_type)) and
+                    sep in value):
+                values = split_by(value, sep)
+                return match_list(s, values)
             else:
-                return with_case(s) in with_case(txt_type(value))
+                if exact:
+                    return with_case(txt_type(value)) == with_case(s)
+                else:
+                    return with_case(s) in with_case(txt_type(value))
     else:
-        txt_values = map(with_case, map(txt_type, value))
-        if exact:
-            return with_case(s) in txt_values
-        else:
-            for txt_value in txt_values:
-                if with_case(s) in with_case(txt_value):
-                    return True
-            return False
+        return match_list(s, value)
 
 
 def match_bool(value, s):

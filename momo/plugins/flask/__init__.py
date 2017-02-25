@@ -52,6 +52,7 @@ MOMO_ROOT_REVERSED: use reversed order for listing root nodes (latest first).
 MOMO_MERGE_NODES: whether to merge nodes with the same name (search view
                   only).
 MOMO_CASE_INSENSITIVE: whether to use case insensitive matching for search.
+MOMO_STRING_SEPARATOR: string separator used when matching nodes for search.
 MOMO_INDEX_SORTING_TERMS: the default sorting term for index view.
 MOMO_SEARCH_SORTING_TERMS: the default sorting term for search view.
 MOMO_NODE_SORTING_TERMS: the default sorting term for node view.
@@ -109,6 +110,8 @@ class Flask(Plugin):
         app.config['MOMO_MERGE_NODES'] = self.configs.get('merge_nodes')
         app.config['MOMO_CASE_INSENSITIVE'] = self.configs.get(
             'case_insensitive', False)
+        app.config['MOMO_STRING_SEPARATOR'] = self.configs.get(
+            'string_separator')
         app.config['MOMO_HOLDER_SIZE'] = self.configs.get(
             'holder_size', '125x125')
 
