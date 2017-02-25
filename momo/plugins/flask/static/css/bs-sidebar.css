@@ -16,7 +16,7 @@
 
 .bs-sidebar {
   overflow-y: auto;
-  max-height: 100vh;
+  max-height: 90vh;
 }
 
 /* First level of nav */
