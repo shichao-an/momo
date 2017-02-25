@@ -16,3 +16,7 @@ div.momo-gallery-node img {
 table.momo-table td {
   vertical-align: middle !important;
 }
+
+td.momo-attr-content {
+  max-width: 100%;
+}

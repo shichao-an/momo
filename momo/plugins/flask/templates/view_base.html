@@ -1,6 +1,9 @@
 {# view base
 
 #}
+{% block view_navigation %}
+{% endblock %}
+
 {% set page = get_page(request) %}
 {% set per_page = g.per_page %}
 {% set total = nodes|length %}
