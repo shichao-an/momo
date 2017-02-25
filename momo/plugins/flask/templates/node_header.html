@@ -3,8 +3,6 @@
 Template for node header.
 
 #}
-{% include "toc_header.html" %}
-{% set node_path = node|node_to_path %}
-<a href="/node/{{ node_path }}/">{{ node.name }}</a>
-{% include "node_header_count.html" %}
-</h2>
+{% with include_node_count = true %}
+  {% include "toc_header.html" %}
+{% endwith %}

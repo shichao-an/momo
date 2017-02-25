@@ -10,3 +10,9 @@ Template for data-toc-text headers.
   id="{{ node.name }}"
 {% endif %}
 >
+{% set node_path = node|node_to_path %}
+<a href="/node/{{ node_path }}/">{{ node.name }}</a>
+{% if include_node_count %}
+  {% include "node_header_count.html" %}
+{% endif %}
+</h2>
