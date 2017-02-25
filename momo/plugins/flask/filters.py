@@ -3,6 +3,11 @@
 # http://jinja.pocoo.org/docs/2.9/templates/#builtin-filters
 
 from slugify import slugify as _slugify
+from momo.utils import txt_type as _txt_type
+
+
+def txt_type(s):
+    return _txt_type(s)
 
 
 def get_attr(node, attrname, default=None):
