@@ -6,10 +6,12 @@ Template for node attributes.
 {% set attr_vals = node.attr_vals %}
 {% if attr_vals %}
   <table class="table momo-table">
-  {% if include_node_parents %}
-    {% include "node_parents.html" %}
-  {% endif %}
   {% for attr in attr_vals|sort_attrs|pin_attrs %}
+    {% if loop.index == config.MOMO_PARENT_INDEX %}
+      {% if include_node_parents %}
+        {% include "node_parents.html" %}
+      {% endif %}
+    {% endif %}
     {% set template = 'attr_' ~ attr.name ~ '.html' %}
     {% include [template, 'attr.html'] %}
   {% endfor %}

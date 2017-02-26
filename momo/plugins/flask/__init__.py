@@ -57,6 +57,8 @@ MOMO_INDEX_SORTING_TERMS: the default sorting term for index view.
 MOMO_SEARCH_SORTING_TERMS: the default sorting term for search view.
 MOMO_NODE_SORTING_TERMS: the default sorting term for node view.
 MOMO_HOLDER_SIZE: holder (image placeholder) size (in the form of NxM).
+MOMO_PARENT_INDEX: the loop index (Jinja loop.index, 1-based) of attrs to
+                   insert the parent to.
 """
 
 
@@ -114,6 +116,7 @@ class Flask(Plugin):
             'string_separator')
         app.config['MOMO_HOLDER_SIZE'] = self.configs.get(
             'holder_size', '125x125')
+        app.config['MOMO_PARENT_INDEX'] = self.configs.get('parent_index', 1)
 
         index_sorting_terms = self.configs.get('index_sorting_terms')
         app.config['MOMO_INDEX_SORTING_TERMS'] = (
