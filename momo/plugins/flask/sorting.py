@@ -8,14 +8,11 @@ class SortingError(Exception):
     pass
 
 
-def sort_nodes_by_request(nodes, request, g, default_reverse=False,
-                          default_terms=None):
+def sort_nodes_by_request(nodes, request, g, default_terms=None):
     """High-level function to sort nodes with a request object."""
     sorting_terms = request.args.getlist('sort') or default_terms
     desc = request.args.get('desc', default=False, type=str_to_bool)
     if not sorting_terms:
-        if default_reverse:
-            nodes.reverse()
         if desc:
             nodes.reverse()
     else:
