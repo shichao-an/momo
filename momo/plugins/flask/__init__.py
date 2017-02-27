@@ -2,7 +2,6 @@ import imp
 import os
 import sys
 import jinja2
-from werkzeug.contrib.cache import SimpleCache
 from momo.plugins.base import Plugin
 from momo.plugins.flask.app import (
     app,
@@ -119,7 +118,7 @@ class Flask(Plugin):
         app.config['MOMO_HOLDER_SIZE'] = self.configs.get(
             'holder_size', '125x125')
         app.config['MOMO_PARENT_INDEX'] = self.configs.get('parent_index', 1)
-        app.config['MOMO_CACHE'] = SimpleCache()
+        app.config['MOMO_CACHE'] = {}
 
         index_sorting_terms = self.configs.get('index_sorting_terms')
         app.config['MOMO_INDEX_SORTING_TERMS'] = (
