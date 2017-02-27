@@ -146,6 +146,11 @@ def search(term=None):
         request=request,
     )
 
+    # sort nodes by request args
+    default_reverse = app.config['MOMO_ROOT_REVERSED']
+    if default_reverse:
+        nodes.reverse()
+
     if app.config['MOMO_MERGE_NODES']:
         nodes = merge_nodes(nodes)
 
@@ -158,10 +163,6 @@ def search(term=None):
 
     # apply default sorting
     nodes = app.config['MOMO_NODES_SORTING'](nodes)
-    # sort nodes by request args
-    default_reverse = app.config['MOMO_ROOT_REVERSED']
-    if default_reverse:
-        nodes.reverse()
 
     default_terms = app.config['MOMO_SEARCH_SORTING_TERMS']
     nodes = sort_nodes_by_request(
@@ -199,6 +200,11 @@ def index():
         request=request,
     )
 
+    # sort nodes by request args
+    default_reverse = app.config['MOMO_ROOT_REVERSED']
+    if default_reverse:
+        nodes.reverse()
+
     nodes = funcs['post_index'](
         root=root,
         request=request,
@@ -207,10 +213,6 @@ def index():
 
     # apply default sorting
     nodes = app.config['MOMO_NODES_SORTING'](nodes)
-    # sort nodes by request args
-    default_reverse = app.config['MOMO_ROOT_REVERSED']
-    if default_reverse:
-        nodes.reverse()
 
     default_terms = app.config['MOMO_INDEX_SORTING_TERMS']
     nodes = sort_nodes_by_request(
