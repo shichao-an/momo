@@ -76,7 +76,10 @@ def node(path=None):
         app.config['MOMO_VIEW_NODE'] or
         app.config['MOMO_VIEW']
     )
-    g.per_page = app.config['MOMO_PAGINATION_NODE_PER_PAGE']
+    g.per_page = int(
+        request.args.get(
+            'per_page', app.config['MOMO_PAGINATION_NODE_PER_PAGE'])
+    )
 
     funcs['pre_node'](
         path=path,
@@ -130,7 +133,11 @@ def search(term=None):
         app.config['MOMO_VIEW_SEARCH'] or
         app.config['MOMO_VIEW']
     )
-    g.per_page = app.config['MOMO_PAGINATION_SEARCH_PER_PAGE']
+    g.per_page = int(
+        request.args.get(
+            'per_page', app.config['MOMO_PAGINATION_SEARCH_PER_PAGE'])
+    )
+
     g.case_insensitive = app.config['MOMO_CASE_INSENSITIVE']
     g.string_separator = app.config['MOMO_STRING_SEPARATOR']
 
@@ -188,7 +195,10 @@ def index():
         app.config['MOMO_VIEW_INDEX'] or
         app.config['MOMO_VIEW']
     )
-    g.per_page = app.config['MOMO_PAGINATION_INDEX_PER_PAGE']
+    g.per_page = int(
+        request.args.get(
+            'per_page', app.config['MOMO_PAGINATION_INDEX_PER_PAGE'])
+    )
 
     funcs['pre_index'](
         root=root,
