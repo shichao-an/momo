@@ -1,5 +1,6 @@
 # search backend
 
+from momo.core import Node
 from momo.plugins.flask.filters import get_attr
 from momo.plugins.flask.utils import str_to_bool, split_by
 from momo.utils import txt_type, bin_type
@@ -149,7 +150,7 @@ def match_value(value, s, exact=False, without=False, case_insensitive=False,
             return False
 
     s = txt_type(s)
-    if isinstance(value, (txt_type, bin_type, bool, int, float)):
+    if isinstance(value, (txt_type, bin_type, bool, int, float, Node)):
         if isinstance(value, bool):
             return match_bool(value, s)
         else:
@@ -159,6 +160,8 @@ def match_value(value, s, exact=False, without=False, case_insensitive=False,
                 values = split_by(value, sep)
                 return match_list(s, values)
             else:
+                if isinstance(value, Node):
+                    value = value.name
                 if exact:
                     return with_case(txt_type(value)) == with_case(s)
                 else:
