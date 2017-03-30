@@ -9,7 +9,7 @@ Template for rendering node image, with holder.
     <img src="{{ node_image }}" alt="{{ node.name }}">
   </a>
 {% else %}
-  {% with holder_title = node.name %}
+  {% with holder_title = node.name, holder_text = node.name %}
     <a href="/node/{{ node|node_to_path }}/" title="{{ node.name }}">
       {% include "holder.html" %}
     </a>
