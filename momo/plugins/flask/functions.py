@@ -45,10 +45,11 @@ def toggle_arg(endpoint, request, arg, value, **kwargs):
     :param value: intial value for the toggled argument.
     :param kwargs: keyword arguments to preserve.
     """
-    args = dict(request.args)
+    args = request.args.to_dict()
     if arg in args:
         args.pop(arg)
     else:
         args[arg] = value
+    args.update(request.view_args)
     args.update(kwargs)
     return _url_for(endpoint, **args)
