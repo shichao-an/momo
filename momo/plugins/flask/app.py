@@ -103,9 +103,11 @@ def node(path=None):
     g.nodes = node.node_vals
 
     # apply default sorting
-    g.nodes = app.config['MOMO_NODES_SORTING'](g.nodes)
+    g.nodes = app.config['MOMO_NODES_SORTING'](g.nodes) \
+        if not request.args.get('ns') else g.nodes
     # sort nodes by request args
-    default_terms = app.config['MOMO_NODE_SORTING_TERMS']
+    default_terms = app.config['MOMO_NODE_SORTING_TERMS'] \
+        if not request.args.get('ns') else None
     g.nodes = sort_nodes_by_request(
         g.nodes, request, g, default_terms=default_terms)
 
