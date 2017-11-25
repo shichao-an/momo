@@ -15,6 +15,8 @@ import momo.plugins.flask.sorting
 import momo.plugins.flask.nodes
 from momo.plugins.flask.sorting import sort_nodes
 
+from gevent.wsgi import WSGIServer
+
 """
 app.config values of the current bucket:
 
@@ -230,14 +232,29 @@ class Flask(Plugin):
         # args is not used for now
         host = self.configs.get('host') or FLASK_DEFAULT_HOST
         port = self.configs.get('port') or FLASK_DEFAULT_PORT
-        debug = self.configs.get('debug') or FLASK_DEFAULT_DEBUG
+        if self.configs.get('debug') is not None:
+            debug = self.configs.get('debug')
+        else:
+            debug = FLASK_DEFAULT_DEBUG
+        sys.stderr.write(
+            'Serving on http://{}:{} with debug = {}...\n'.format(host, port,
+                                                                  debug))
 
-        print('Serving on http://{}:{}...'.format(host, port))
+        def _debug_run():
+            app.run(
+                host=host,
+                port=port,
+                debug=debug,
+            )
 
-        app.run(
-            host=host,
-            port=port,
-            debug=debug,
-        )
+        def _run():
+            http_server = WSGIServer((host, port), app, log=None)
+            http_server.serve_forever()
+
+        if debug:
+            _debug_run()
+        else:
+            _run()
+
 
 plugin = Flask()

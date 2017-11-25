@@ -6,3 +6,4 @@ six
 mkdocs==0.15.3
 python-slugify
 flask-paginate
+gevent
