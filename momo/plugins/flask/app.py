@@ -9,6 +9,7 @@ from flask import (
     send_from_directory,
 )
 from flask_bootstrap import Bootstrap
+import sh
 from momo.plugins.flask import filters, functions
 from momo.plugins.flask.utils import get_public_functions
 from momo.plugins.flask.sorting import sort_nodes_by_request
@@ -237,6 +238,23 @@ def index():
 def files(filename):
     """Get user files."""
     return send_from_directory(app.config['MOMO_FILES_FOLDER'], filename)
+
+
+@app.route("/open")
+def open_file():
+    """
+    Open the file on the local machine.  This is useful only if the app is
+    run on the same local machine as the client.
+    """
+    filename = request.args.get('file')
+    if filename is None:
+        return 'No file specified'
+    res = filename
+    if os.path.exists(filename):
+        sh.open(filename)
+    else:
+        res = '%s :No such file or directory' % filename
+    return res
 
 
 @app.before_request

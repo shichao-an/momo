@@ -245,6 +245,7 @@ class Flask(Plugin):
                 host=host,
                 port=port,
                 debug=debug,
+                use_reloader=False,
             )
 
         def _run():
