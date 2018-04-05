@@ -6,8 +6,15 @@ Momo is a simple file manager to organize files that can scatter around various 
 
 - Write your bucket documents in YAML.
 - Browse and manage files from the command-line.
-- View and search files from built-in Web UI plugin based on Flask.
+- View and search files from a Web UI based on Flask.
 - Extend and customize the Flask plugin.
+
+### Example
+
+[example.yml](example/example.yaml) is an example bucket document in YAML. Here's a screenshot of the Web viewer:
+
+[![Example Screenshot](example/example.png)](example/example.png "Example Screenshot")
+
 
 ### Development
 

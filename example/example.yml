@@ -1,0 +1,16 @@
+Books:
+    Designing Data-Intensive Applications:
+        image: https://dataintensive.net/images/book-cover.png
+        author: Martin Kleppmann
+        website: https://dataintensive.net/
+        path: /Users/shichao/Dropbox/Books/Big_Data/Designing_Data_Intensive_Applications.pdf
+    The Go Programming Language:
+        image: https://notes.shichao.io/gopl/cover.png
+        path: /Users/shichao/Books/Go/GOPL/The_Go_Programming_Language.pdf
+Anime:
+    Sakura Quest:
+        path: /Volumes/media2/Anime/Sakura_Quest
+    Attack on Titan Season 2:
+        path: /Volumes/media3/Anime/Attack_on_Titan_Season_2
+    Uchouten_Kazoku:
+        path: /Volumes/media4/Anime/Uchouten_Kazoku
