@@ -1,4 +1,7 @@
 {# default attrcontent for image #}
 <a href="{{ attr.content }}">
-  <img src="{{ attr.content }}">
+  <img src="{{ attr.content }}"
+  {%- if config.MOMO_IMAGE_MAX_WIDTH -%}
+    style="max-width: {{ config.MOMO_IMAGE_MAX_WIDTH }}"
+  {%- endif -%}>
 </a>
