@@ -594,7 +594,6 @@ class Indexer(object):
 
         :return: the element that matches `name_or_num` (if it is not None)
         """
-        self.lines = []
         if show_path and not node.is_root:
             self.print_path(node)
         if name_or_num is None:
@@ -636,11 +635,10 @@ class Indexer(object):
         List content of the attribute. If `name_or_num` is not None, return
         the matched item of the content.
         """
-        self.lines = []
         if name_or_num is None:
             self._attr_ls_all(attr, show_path, expand_attr)
         else:
-            return self._attr_lsattr(name_or_num, show_path, expand_attr)
+            return self._attr_lsattr(attr, name_or_num, show_path, expand_attr)
 
     def _attr_lsattr(self, attr, name_or_num, show_path=False,
                      expand_attr=False):
