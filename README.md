@@ -11,7 +11,7 @@ Momo is a simple file manager to organize files that can scatter around various 
 
 ### Example
 
-[example.yml](example/example.yaml) is an example bucket document in YAML. Here's a screenshot of the Web viewer:
+[example.yml](example/example.yml) is an example bucket document in YAML. Here's a screenshot of the Web viewer:
 
 [![Example Screenshot](example/example.png)](example/example.png "Example Screenshot")
 
