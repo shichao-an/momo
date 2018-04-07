@@ -21,6 +21,8 @@ LINES = []  # cached lines
 
 
 class MomoCliApp(App):
+    DEFAULT_VERBOSE_LEVEL = 0
+
     def __init__(self):
         super(MomoCliApp, self).__init__(
             description='momo cli',
@@ -46,6 +48,34 @@ class MomoCliApp(App):
         if self.cbn != bucket_name:  # only load bucket from path if changed
             self.cbn = bucket_name
             self.bucket = settings.bucket
+
+    def configure_logging(self):
+        """Create logging handlers for any log output.
+        """
+        root_logger = logging.getLogger('')
+        # override root logger level
+        console_level = {0: logging.WARNING,
+                         1: logging.INFO,
+                         2: logging.DEBUG,
+                         }.get(self.options.verbose_level, logging.WARNING)
+        root_logger.setLevel(console_level)
+
+        # Set up logging to a file
+        if self.options.log_file:
+            file_handler = logging.FileHandler(
+                filename=self.options.log_file,
+            )
+            formatter = logging.Formatter(self.LOG_FILE_MESSAGE_FORMAT)
+            file_handler.setFormatter(formatter)
+            root_logger.addHandler(file_handler)
+
+        # Always send higher-level messages to the console via stderr
+        console = logging.StreamHandler(self.stderr)
+        console.setLevel(console_level)
+        formatter = logging.Formatter(self.CONSOLE_MESSAGE_FORMAT)
+        console.setFormatter(formatter)
+        root_logger.addHandler(console)
+        return
 
     def run_subcommand(self, argv):
         try:
@@ -339,7 +369,9 @@ class Serve(Command):
         The parser for sub-command "serve".
         """
         p = super(Serve, self).get_parser(prog_name)
-        p.add_argument('port', nargs='?', type=int,
+        p.add_argument('--host',
+                       help='optional host to listen for (default 127.0.0.1')
+        p.add_argument('--port', '-p', type=int,
                        help='optional port number to listen for (default 5000')
         # save the parser
         self.parser = p
@@ -347,7 +379,8 @@ class Serve(Command):
 
     def take_action(self, parsed_args):
         app = Flask(__name__)
-        port = parsed_args.port
+        port = parsed_args.port or 5000
+        host = parsed_args.host or '127.0.0.1'
 
         @app.route("/")
         def index():
@@ -371,7 +404,11 @@ class Serve(Command):
             else:
                 res = '%s :No such file or directory' % filename
             return res
-        app.run(debug=True, use_reloader=False, port=port)
+
+        sys.stderr.write(
+            'Serving on http://{}:{} with debug = {}...\n'.format(host, port,
+                                                                  True))
+        app.run(debug=True, use_reloader=False, host=host, port=port)
 
 
 def do_ls(bucket, args, parser):
