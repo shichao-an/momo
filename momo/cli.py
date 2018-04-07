@@ -4,6 +4,7 @@ import inspect
 import logging
 import os
 import sys
+from flask import Flask, request
 from cliff.app import App
 from cliff.command import Command
 from cliff.commandmanager import CommandManager
@@ -11,7 +12,8 @@ from momo import plugins
 from momo.backends import OrderedDict
 from momo.core import configs, AttrError
 from momo.settings import settings
-from momo.utils import txt_type, utf8_decode, page_lines, eval_path
+from momo.utils import (txt_type, utf8_decode, page_lines, eval_path,
+                        open_default)
 
 
 INDENT_UNIT = '  '
@@ -352,6 +354,48 @@ class Dump(Command):
     def take_action(self, parsed_args):
         self.app.bucket.dump()
         print('bucket "%s" has been saved.' % self.app.cbn)
+
+
+class Serve(Command):
+    """Run a server locally that listens for file opening requests."""
+    def get_parser(self, prog_name):
+        """
+        The parser for sub-command "serve".
+        """
+        p = super(Serve, self).get_parser(prog_name)
+        p.add_argument('port', nargs='?', type=int,
+                       help='optional port number to listen for (default 5000')
+        # save the parser
+        self.parser = p
+        return p
+
+    def take_action(self, parsed_args):
+        app = Flask(__name__)
+        port = parsed_args.port
+
+        @app.route("/")
+        def index():
+            return (
+                'momo is listening port {} '
+                'for file opening requests...'
+            ).format(port)
+
+        @app.route("/open")
+        def open_file():
+            """
+            Open the file on the local machine.  This is useful only if the app
+            is run on the same local machine as the client.
+            """
+            filename = request.args.get('file')
+            if filename is None:
+                return 'No file specified'
+            res = filename
+            if os.path.exists(filename):
+                open_default(filename)
+            else:
+                res = '%s :No such file or directory' % filename
+            return res
+        app.run(debug=True, use_reloader=False, port=port)
 
 
 def do_ls(bucket, args, parser):

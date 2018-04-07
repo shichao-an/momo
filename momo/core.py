@@ -21,6 +21,7 @@ class Configs(object):
     def __setattr__(self, name, value):
         self.CONFIGS[name] = value
 
+
 configs = Configs()
 
 

@@ -30,6 +30,7 @@ setup(
             'pl = momo.cli:Plugin',
             'reload = momo.cli:Reload',
             'rm = momo.cli:Remove',
+            'serve = momo.cli:Serve',
             'use = momo.cli:Use',
         ],
     },

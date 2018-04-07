@@ -9,11 +9,11 @@ from flask import (
     send_from_directory,
 )
 from flask_bootstrap import Bootstrap
-import sh
 from momo.plugins.flask import filters, functions
 from momo.plugins.flask.utils import get_public_functions
 from momo.plugins.flask.sorting import sort_nodes_by_request
 from momo.plugins.flask.nodes import merge_nodes
+from momo.utils import open_default
 
 
 FLASK_DEFAULT_HOST = '127.0.0.1'
@@ -251,7 +251,7 @@ def open_file():
         return 'No file specified'
     res = filename
     if os.path.exists(filename):
-        sh.open(filename)
+        open_default(filename)
     else:
         res = '%s :No such file or directory' % filename
     return res

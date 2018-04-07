@@ -152,5 +152,6 @@ class Settings(object):
             raise SettingsError('"%s" setting is not found' % name)
         return res
 
+
 settings = Settings()
 settings.load()
