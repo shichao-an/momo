@@ -188,6 +188,11 @@ class Flask(Plugin):
             prefix='sort_by_',
         )
 
+        # if set, the path attr will render link with the given ip:port instead
+        # of same as the flask app's ip:port
+        app.config['MOMO_FILE_SERVING_ADDRESS'] = \
+            self.configs.get('file_serving_address')
+
     def _get_pinning_function(self, pinned_attrs):
         """Return a (template filter) function that reorders attrs based on
         the given piined attrs."""

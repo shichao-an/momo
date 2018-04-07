@@ -363,7 +363,7 @@ class Dump(Command):
 
 
 class Serve(Command):
-    """Run a server locally that listens for file opening requests."""
+    """Run a server that listens for file opening requests."""
     def get_parser(self, prog_name):
         """
         The parser for sub-command "serve".
@@ -371,8 +371,10 @@ class Serve(Command):
         p = super(Serve, self).get_parser(prog_name)
         p.add_argument('--host',
                        help='optional host to listen for (default 127.0.0.1')
-        p.add_argument('--port', '-p', type=int,
-                       help='optional port number to listen for (default 5000')
+        p.add_argument(
+            '--port', '-p', type=int,
+            help='optional port number to listen for (default 5000)'
+        )
         # save the parser
         self.parser = p
         return p
