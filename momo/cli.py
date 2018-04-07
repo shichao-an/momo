@@ -30,32 +30,6 @@ class MomoCliApp(App):
         self.bucket = None
         self.cbn = None
 
-    def configure_logging(self):
-        """Create logging handlers for any log output.
-        """
-        root_logger = logging.getLogger()
-
-        # Set up logging to a file
-        if self.options.log_file:
-            file_handler = logging.FileHandler(
-                filename=self.options.log_file,
-            )
-            formatter = logging.Formatter(self.LOG_FILE_MESSAGE_FORMAT)
-            file_handler.setFormatter(formatter)
-            root_logger.addHandler(file_handler)
-
-        # Always send higher-level messages to the console via stderr
-        console = logging.StreamHandler(self.stderr)
-        console_level = {0: logging.WARNING,
-                         1: logging.INFO,
-                         2: logging.DEBUG,
-                         }.get(self.options.verbose_level, logging.WARNING)
-        console.setLevel(console_level)
-        formatter = logging.Formatter(self.CONSOLE_MESSAGE_FORMAT)
-        console.setFormatter(formatter)
-        root_logger.addHandler(console)
-        return
-
     def build_option_parser(self, description, version,
                             argparse_kwargs=None):
         parser = super(MomoCliApp, self).build_option_parser(
@@ -114,27 +88,29 @@ class MomoCliApp(App):
             parsed_args = cmd_parser.parse_args(sub_argv)
             result = cmd.run(parsed_args)
         except Exception as err:
-            if self.options.debug:
-                self.LOG.exception(err.message)
-            else:
-                self.LOG.error(err.message)
-            try:
-                self.clean_up(cmd, result, err)
-            except Exception as err2:
+            if self.options.log_file is not None:
                 if self.options.debug:
-                    self.LOG.exception(err2.message)
+                    self.LOG.exception(err.message)
                 else:
-                    self.LOG.error('Could not clean up: %s', err2.message)
-            if self.options.debug:
-                raise
+                    self.LOG.error(err.message)
+                try:
+                    self.clean_up(cmd, result, err)
+                except Exception as err2:
+                    if self.options.debug:
+                        self.LOG.exception(err2.message)
+                    else:
+                        self.LOG.error('Could not clean up: %s', err2.message)
+            raise
         else:
             try:
                 self.clean_up(cmd, result, None)
             except Exception as err3:
-                if self.options.debug:
-                    self.LOG.exception(err3)
-                else:
-                    self.LOG.error('Could not clean up: %s', err3)
+                if self.options.log_file is not None:
+                    if self.options.debug:
+                        self.LOG.exception(err3)
+                    else:
+                        self.LOG.error('Could not clean up: %s', err3)
+                raise
         return result
 
 
