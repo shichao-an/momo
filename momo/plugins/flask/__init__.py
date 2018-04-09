@@ -1,3 +1,4 @@
+from __future__ import print_function, absolute_import
 import imp
 import os
 import sys
@@ -244,9 +245,9 @@ class Flask(Plugin):
             debug = self.configs.get('debug')
         else:
             debug = FLASK_DEFAULT_DEBUG
-        sys.stderr.write(
-            'Serving on http://{}:{} with debug = {}...\n'.format(host, port,
-                                                                  debug))
+        print('Serving on http://{}:{} with debug = {}...'.format(
+              host, port, debug),
+              file=sys.stderr)
 
         def _debug_run():
             app.run(

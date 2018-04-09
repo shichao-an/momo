@@ -4,6 +4,7 @@ import inspect
 import logging
 import os
 import sys
+import daemon
 from flask import Flask, request
 from cliff.app import App
 from cliff.command import Command
@@ -11,13 +12,15 @@ from cliff.commandmanager import CommandManager
 from momo import plugins
 from momo.backends import OrderedDict
 from momo.core import configs, AttrError
-from momo.settings import settings
+from momo.settings import settings, DEFAULT_SETTINGS_DIR
 from momo.utils import (txt_type, utf8_decode, page_lines, eval_path,
-                        open_default)
+                        open_default, mkdir_p)
 
 
 INDENT_UNIT = '  '
 LINES = []  # cached lines
+# the log file for momo serve command if it's run in background
+SERVE_LOG_FILE = os.path.join(DEFAULT_SETTINGS_DIR, 'serve.log')
 
 
 class MomoCliApp(App):
@@ -375,6 +378,10 @@ class Serve(Command):
             '--port', '-p', type=int,
             help='optional port number to listen for (default 5000)'
         )
+        p.add_argument(
+            '--background', '-d', action='store_true',
+            help='run as a daemon in the background'
+        )
         # save the parser
         self.parser = p
         return p
@@ -407,10 +414,28 @@ class Serve(Command):
                 res = '%s :No such file or directory' % filename
             return res
 
-        sys.stderr.write(
-            'Serving on http://{}:{} with debug = {}...\n'.format(host, port,
-                                                                  True))
-        app.run(debug=True, use_reloader=False, host=host, port=port)
+        def setup_log_file():
+            mkdir_p(DEFAULT_SETTINGS_DIR)
+            return SERVE_LOG_FILE
+
+        if parsed_args.background:
+            print('Running in the background. See log file {}'.format(
+                  SERVE_LOG_FILE),
+                  file=sys.stderr)
+            with open(setup_log_file(), 'a') as f:
+                with daemon.DaemonContext(stderr=f):
+                    try:
+                        app.run(debug=True, use_reloader=False, host=host,
+                                port=port)
+                    except Exception:
+                        logging.getLogger('').exception(
+                            "Failed to run in the background.")
+                        return
+        else:
+            print('Serving on http://{}:{} with debug = {}...'.format(
+                  host, port, True),
+                  file=sys.stderr)
+            app.run(debug=True, use_reloader=False, host=host, port=port)
 
 
 def do_ls(bucket, args, parser):
