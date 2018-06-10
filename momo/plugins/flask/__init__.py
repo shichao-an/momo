@@ -196,7 +196,7 @@ class Flask(Plugin):
 
     def _get_pinning_function(self, pinned_attrs):
         """Return a (template filter) function that reorders attrs based on
-        the given piined attrs."""
+        the given pinned attrs."""
 
         def pin_attrs(attrs):
             pinned = []

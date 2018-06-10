@@ -398,7 +398,7 @@ class Serve(Command):
                 'for file opening requests...'
             ).format(port)
 
-        @app.route("/open")
+        @app.route("/open/")
         def open_file():
             """
             Open the file on the local machine.  This is useful only if the app
