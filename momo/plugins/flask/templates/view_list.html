@@ -11,6 +11,8 @@ View template for a list of nodes.
     {% if include_node_path %}
       {% include "node_path.html" %}
     {% endif %}
-    {% include "node_attrs.html" %}
+    {% if config.MOMO_LIST_NODE_ATTRS %}
+      {% include "node_attrs.html" %}
+    {% endif %}
   {% endfor %}
 {% endblock %}
