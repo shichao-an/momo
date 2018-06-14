@@ -21,7 +21,7 @@ def parse_q(s):
     """Parse the value of query string q (?q=) into a search sub-term."""
     if '=' not in s:
         names = s.split()
-        term = '&'.join(map(lambda x: 'n.name=' + x, names))
+        term = '/'.join(map(lambda x: 'n.name=' + x, names))
         return term
     else:
         subterms = s.split()
