@@ -58,3 +58,8 @@ def sort_attrs(attrs):
 
 def pin_attrs(attrs):
     """Placeholder overriden by app.config['MOMO_ATTRS_PINNING']."""
+
+
+def safe_quote(s):
+    """Only quote & and ?."""
+    return s.replace('&', '%26').replace('?', '%3F')
