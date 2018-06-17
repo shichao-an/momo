@@ -6,7 +6,15 @@ Template for rendering node image, with holder.
 {% set node_image = node|attr_image %}
 {% if node_image %}
   <a href="/node/{{ node|node_to_path }}" title="{{ node.name}} ">
-    <img src="{{ node_image }}" alt="{{ node.name }}">
+    <img src="{{ node_image }}" alt="{{ node.name }}"
+      {% set width = request.args.get('width') %}
+      {%- if width -%}
+        style="max-width: {{ width }}px"
+      {%- else -%}
+        {%- if config.MOMO_IMAGE_MAX_WIDTH -%}
+          style="max-width: {{ config.MOMO_IMAGE_MAX_WIDTH }}"
+        {%- endif -%}
+      {%- endif -%}>
   </a>
 {% else %}
   {% with holder_title = node.name, holder_text = node.name %}
