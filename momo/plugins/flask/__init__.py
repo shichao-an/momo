@@ -262,6 +262,7 @@ class Flask(Plugin):
             )
 
         def _run():
+            # TODO: make log argument (access log) configurable
             http_server = WSGIServer((host, port), app, log=None)
             http_server.serve_forever()
 

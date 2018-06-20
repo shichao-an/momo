@@ -1,0 +1,38 @@
+{# base layout #}
+{% extends "bootstrap/base.html" %}
+
+{% block title %}{{ g.title }} - {{ config.MOMO_SITENAME }}{% endblock %}
+
+{% block styles %}
+{{super()}}
+{% include "styles.html" %}
+{% endblock %}
+
+{% block body_attribs %}
+{% include "body_attribs.html" %}
+{% endblock %}
+
+{% block navbar %}
+{% include "navbar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="col-md-3" role="toc">
+    {% include "toc.html" %}
+  </div>
+  <div class="col-md-9" role="main">
+    {% if config.MOMO_TOC_HEADER %}
+    <h2 class="main-header" data-toc-text="{{ status_code }}">Oops...</h2>
+    {% else %}
+      <h1>Oops...</h1>
+    {% endif %}
+    {% include status_code ~ '.html' ignore missing %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{super()}}
+{% include "scripts.html" %}
+{% endblock %}

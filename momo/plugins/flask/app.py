@@ -271,3 +271,13 @@ def fix_trailing():
             return redirect(rp + '/' + qs)
         elif rp.endswith('//'):
             return redirect(rp.rstrip('/') + '/' + qs)
+
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('error.html', status_code=404), 404
+
+
+@app.errorhandler(500)
+def page_not_found(e):
+    return render_template('error.html', status_code=500), 500
