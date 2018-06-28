@@ -19,4 +19,5 @@ table.momo-table td {
 
 td.momo-attr-content {
   max-width: 100%;
+  word-break: break-word;
 }
