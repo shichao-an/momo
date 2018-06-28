@@ -3,5 +3,19 @@
 Template to multiplex views for rendering nodes.
 
 #}
+{% if request.endpoint == 'index' %}
+  {% set view_level = 1 %}
+{% elif request.endpoint == 'node' %}
+  {% set view_level = node.level + 1 %}
+{% elif request.endpoint == 'search' %}
+  {# Need to guess the most relevant level, since the search results
+     may have nodes of any levels. #}
+     {% set view_level = (nodes|sum(attribute='level') / nodes|length)|float|round|int %}
+{% else %}
+  {% set view_level = 1 %}
+{% endif %}
+
 {% set view_template = 'view_' ~ g.view ~ '.html' %}
-{% include [view_template, 'view_list.html'] %}
+{# view_template_with_level is something like 'view_table_2.html' #}
+{% set view_template_with_level = 'view_' ~ g.view ~ '_' ~ view_level ~ '.html' %}
+{% include [view_template_with_level, view_template, 'view_list.html'] %}
