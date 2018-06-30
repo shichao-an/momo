@@ -66,6 +66,8 @@ MOMO_IMAGE_MAX_WIDTH: max width (in px) of the images.
 MOMO_PARENT_INDEX: the loop index (Jinja loop.index, 1-based) of attrs to
                    insert the parent to.
 MOMO_CACHE: a simple cache.
+MOMO_USE_BOOTSTRAP_STYLES: whether to use Bootstrap styles (default to True).
+MOMO_USE_BOOTSTRAP_SCRIPTS: whether to use Bootstrap scripts (default to True).
 """
 
 
@@ -197,6 +199,12 @@ class Flask(Plugin):
         # of same as the flask app's ip:port
         app.config['MOMO_FILE_SERVING_ADDRESS'] = \
             self.configs.get('file_serving_address')
+
+        # flask-bootstrap
+        app.config['MOMO_USE_BOOTSTRAP_STYLES'] = \
+            self.configs.get('use_bootstrap_styles', True)
+        app.config['MOMO_USE_BOOTSTRAP_SCRIPTS'] = \
+            self.configs.get('use_bootstrap_scripts', True)
 
     def _get_pinning_function(self, pinned_attrs):
         """Return a (template filter) function that reorders attrs based on

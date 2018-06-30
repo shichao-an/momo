@@ -4,7 +4,9 @@
 {% block title %}{{ g.title }} - {{ config.MOMO_SITENAME }}{% endblock %}
 
 {% block styles %}
-{{super()}}
+{% if config.MOMO_USE_BOOTSTRAP_STYLES %}
+  {{super()}}
+{% endif %}
 {% include "styles.html" %}
 {% endblock %}
 
@@ -31,6 +33,8 @@
 {% endblock %}
 
 {% block scripts %}
-{{super()}}
+{% if config.MOMO_USE_BOOTSTRAP_SCRIPTS %}
+  {{super()}}
+{% endif %}
 {% include "scripts.html" %}
 {% endblock %}
