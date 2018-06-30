@@ -34,6 +34,7 @@ Bootstrap(app)
 
 # extensions
 app.jinja_env.add_extension('jinja2.ext.do')
+app.jinja_env.add_extension('jinja2.ext.loopcontrols')
 
 # register default filters
 app.jinja_env.filters.update(get_public_functions(filters))
