@@ -10,7 +10,9 @@ Template to multiplex views for rendering nodes.
 {% elif request.endpoint == 'search' %}
   {# Need to guess the most relevant level, since the search results
      may have nodes of any levels. #}
-     {% set view_level = (nodes|sum(attribute='level') / nodes|length)|float|round|int %}
+  {% if nodes|length > 0 %}
+    {% set view_level = (nodes|sum(attribute='level') / nodes|length)|float|round|int %}
+  {% endif %}
 {% else %}
   {% set view_level = 1 %}
 {% endif %}
